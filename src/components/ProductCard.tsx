@@ -2,11 +2,7 @@ import { Link } from 'react-router-dom';
 import { ShoppingBag, Check } from 'lucide-react';
 import type { Product } from '@/stores/useProductStore';
 import { useCartStore } from '@/stores/useCartStore';
-
-// ─── DISCOUNT CONFIG ───────────────────────────────────────────────────────
-// ตอนจะเอาออก: เปลี่ยนเป็น 0 หรือลบบรรทัดนี้ + ลบส่วน discount ด้านล่างทิ้ง
-const DISCOUNT = 0.3;
-// ──────────────────────────────────────────────────────────────────────────
+import { useAppStore } from '@/stores/useAppStore';
 
 interface ProductCardProps {
   product: Product;
@@ -14,13 +10,14 @@ interface ProductCardProps {
 
 const ProductCard = ({ product }: ProductCardProps) => {
   const { items, toggleItem } = useCartStore();
+  const discountRate = useAppStore((s) => s.discountRate);
   const isSoldOut = product.statusTag === 'soldOut';
   const isInCart = items.some((i) => i.productId === product.id);
 
   // ─── Discount calculation ───────────────────────────────────────────────
-  const hasDiscount = DISCOUNT > 0;
-  const discountedPrice = hasDiscount ? Math.round(product.price * (1 - DISCOUNT)) : product.price;
-  const discountPercent = Math.round(DISCOUNT * 100);
+  const hasDiscount = discountRate > 0;
+  const discountedPrice = hasDiscount ? Math.round(product.price * (1 - discountRate / 100)) : product.price;
+  const discountPercent = Math.round(discountRate);
   // ───────────────────────────────────────────────────────────────────────
 
   const handleAddToCart = (e: React.MouseEvent) => {

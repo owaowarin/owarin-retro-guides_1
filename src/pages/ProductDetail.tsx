@@ -32,6 +32,7 @@ const ProductDetail = () => {
 
   const isInCart = items.some((i) => i.productId === id);
   const isSoldOut = product?.statusTag === 'soldOut';
+  const discountRate = useAppStore((s) => s.discountRate);
 
   if (!product) {
     return (
@@ -41,12 +42,16 @@ const ProductDetail = () => {
     );
   }
 
+  const hasDiscount = discountRate > 0;
+  const discountedPrice = hasDiscount ? Math.round(product.price * (1 - discountRate / 100)) : product.price;
+  const discountPercent = Math.round(discountRate);
+
   const handleAdd = () => {
     if (!isInCart && !isSoldOut) {
       addItem({
         productId: product.id,
         title: product.title,
-        price: product.price,
+        price: discountedPrice,
         platform: product.platform,
         frontImage: product.frontImage,
       });
@@ -66,8 +71,6 @@ const ProductDetail = () => {
 
   /* Display title as-is without 「」 wrapping */
   const displayTitle = product.title.replace(/^「|」$/g, '');
-
-  const displayPrice = `${Number(product.price).toLocaleString()} THB`;
 
   return (
     <div className="min-h-screen bg-background">
@@ -156,10 +159,18 @@ const ProductDetail = () => {
               )}
             </div>
 
-            {/* Price - แสดงผล THB ด้านหลัง และเพิ่ม lining-nums เพื่อปรับความสูงตัวเลขให้เท่ากับตัวอักษร */}
-            <p className="text-2xl font-display text-primary mb-6 lining-nums">
-              {displayPrice}
-            </p>
+            {/* Price */}
+            <div className="mb-6">
+              {hasDiscount ? (
+                <div className="flex items-baseline gap-2">
+                  <p className="text-2xl font-display text-primary lining-nums">{discountedPrice.toLocaleString()} THB</p>
+                  <p className="text-sm text-muted-foreground line-through lining-nums">{product.price.toLocaleString()}</p>
+                  <span className="text-xs bg-primary/20 text-primary px-1.5 py-0.5 rounded">-{discountPercent}%</span>
+                </div>
+              ) : (
+                <p className="text-2xl font-display text-primary lining-nums">{product.price.toLocaleString()} THB</p>
+              )}
+            </div>
 
             {/* Add to Cart / Sold Out Button */}
             <button
