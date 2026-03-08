@@ -44,8 +44,10 @@ const ProductCard = ({ product }: ProductCardProps) => {
         <img
           src={product.frontImage}
           alt={product.title}
-          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 bg-secondary"
           loading="lazy"
+          decoding="async"
+          onError={(e) => { (e.target as HTMLImageElement).style.opacity = '0'; }}
         />
         {/* DISCOUNT BADGE — ลบบรรทัดนี้ทิ้งเมื่อเอา discount ออก */}
         {hasDiscount && !isSoldOut && (

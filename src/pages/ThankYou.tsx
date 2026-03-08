@@ -1,8 +1,6 @@
 import { useSearchParams, Link } from 'react-router-dom';
 import { useAppStore } from '@/stores/useAppStore';
-import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
-import { useState, useEffect } from 'react';
 
 const ThankYou = () => {
   const [params] = useSearchParams();
@@ -10,35 +8,11 @@ const ThankYou = () => {
   const orders = useAppStore((s) => s.orders);
   const headerName = useAppStore((s) => s.headerName);
   const cfg = useAppStore((s) => s.thankYouConfig);
-  const orderFromStore = orders.find((o) => o.id === orderId);
-  const [orderFromDb, setOrderFromDb] = useState<typeof orderFromStore | null>(null);
-
-  // Fallback: ถ้า order ยังไม่อยู่ใน store (เช่น navigate เร็วเกินไป) ให้ fetch จาก Supabase
-  useEffect(() => {
-    if (!orderFromStore && orderId) {
-      supabase.from('orders').select('*').eq('id', orderId).single().then(({ data }) => {
-        if (data) {
-          setOrderFromDb({
-            id: data.id,
-            items: data.items,
-            subtotal: data.subtotal,
-            shipping: data.shipping,
-            total: data.total,
-            customer: data.customer,
-            status: data.status,
-            slipUrl: data.slip_url,
-            createdAt: data.created_at,
-          });
-        }
-      });
-    }
-  }, [orderId, orderFromStore]);
-
-  const order = orderFromStore ?? orderFromDb;
+  const order = orders.find((o) => o.id === orderId);
 
   const handleCopy = () => {
     if (!order) {
-      navigator.clipboard.writeText(`ORDER ID: ${orderId}`);
+      navigator.clipboard.writeText(orderId);
       toast.success('Order ID copied');
       return;
     }
@@ -53,9 +27,7 @@ const ThankYou = () => {
       `[ ORDER DETAILS ]`,
       itemLines,
       ``,
-      `SUBTOTAL: ${order.subtotal.toLocaleString()} THB`,
-      `SHIPPING: ${order.shipping.toLocaleString()} THB`,
-      `TOTAL: ${order.total.toLocaleString()} THB`,
+      `ORDER TOTAL: ${order.total.toLocaleString()} THB`,
       ``,
       `[ SHIP TO ]`,
       `ชื่อ:    ${order.customer.name}`,
