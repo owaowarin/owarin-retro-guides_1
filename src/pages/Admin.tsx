@@ -1157,6 +1157,15 @@ const ProductsTab = () => {
                 ))}
               </select>
             </div>
+            <div>
+              <label className={labelClass}>Status</label>
+              <select value={form.statusTag || 'none'} onChange={(e) => setForm((f) => ({ ...f, statusTag: e.target.value as Product['statusTag'] }))} className={inputClass}>
+                <option value="none">Available</option>
+                <option value="soldOut">Sold Out</option>
+                <option value="rare">Rare</option>
+                <option value="mint">Mint</option>
+              </select>
+            </div>
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>

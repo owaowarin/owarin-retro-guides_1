@@ -65,14 +65,15 @@ const Checkout = () => {
     }
 
     /* Auto mark product as soldOut on order placed */
-    items.forEach((item) => {
-      const prod = products.find((p) => p.id === item.productId);
-      if (prod) {
-        updateProduct(prod.id, { statusTag: 'soldOut' });
-      }
-    });
+    await Promise.all(
+      items.map((item) => {
+        const prod = products.find((p) => p.id === item.productId);
+        if (prod) return updateProduct(prod.id, { statusTag: 'soldOut' });
+        return Promise.resolve();
+      })
+    );
 
-    addOrder({
+    await addOrder({
       id: orderId,
       items: items.map((i) => ({ productId: i.productId, title: i.title, price: i.price, platform: i.platform })),
       subtotal, shipping, total,
