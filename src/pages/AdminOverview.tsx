@@ -1,25 +1,8 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { useProductStore, Product } from '@/stores/useProductStore';
 import { useAppStore } from '@/stores/useAppStore';
-import { TrendingUp, MapPin, Package, ChevronRight, X, Calendar } from 'lucide-react';
-
-// ─── Mock analytics data (replace with real tracking backend later) ────────
-// Structure: productId → { views, dailyChange, locations: [{city, country, count}] }
-const MOCK_ANALYTICS: Record<string, {
-  views: number;
-  dailyChange: number;
-  locations: { city: string; country: string; count: number }[];
-}> = {
-  'OWA-001': { views: 342, dailyChange: 12.4, locations: [{ city: 'Bangkok', country: 'TH', count: 120 }, { city: 'Tokyo', country: 'JP', count: 89 }, { city: 'Osaka', country: 'JP', count: 44 }, { city: 'Samut Prakan', country: 'TH', count: 30 }] },
-  'OWA-002': { views: 218, dailyChange: -3.1, locations: [{ city: 'Tokyo', country: 'JP', count: 98 }, { city: 'Bangkok', country: 'TH', count: 67 }, { city: 'Chiang Mai', country: 'TH', count: 22 }] },
-  'OWA-003': { views: 189, dailyChange: 8.7,  locations: [{ city: 'Osaka', country: 'JP', count: 75 }, { city: 'Bangkok', country: 'TH', count: 60 }, { city: 'Seoul', country: 'KR', count: 34 }] },
-  'OWA-004': { views: 154, dailyChange: 2.2,  locations: [{ city: 'Bangkok', country: 'TH', count: 88 }, { city: 'Tokyo', country: 'JP', count: 40 }] },
-  'OWA-005': { views: 97,  dailyChange: -8.5, locations: [{ city: 'Tokyo', country: 'JP', count: 50 }, { city: 'Osaka', country: 'JP', count: 30 }] },
-};
-
-function getAnalytics(id: string) {
-  return MOCK_ANALYTICS[id] ?? { views: Math.floor(Math.random() * 80 + 10), dailyChange: 0, locations: [] };
-}
+import { supabase } from '@/lib/supabase';
+import { TrendingUp, Package, ChevronRight, X, Calendar } from 'lucide-react';
 
 // ─── Sub-components ────────────────────────────────────────────────────────
 
@@ -75,8 +58,35 @@ const AdminOverview = ({ onNavigateToOrders }: AdminOverviewProps) => {
   const orders = useAppStore((s) => s.orders);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [salesView, setSalesView] = useState<'daily' | 'monthly'>('daily');
-  const [salesOffset, setSalesOffset] = useState(0); // days or months back
+  const [salesOffset, setSalesOffset] = useState(0);
   const [filterDate, setFilterDate] = useState<string>('');
+  const [viewCounts, setViewCounts] = useState<Record<string, number>>({});
+  const [searchQueries, setSearchQueries] = useState<{ query: string; searched_at: string }[]>([]);
+
+  // Fetch real product views from Supabase
+  useEffect(() => {
+    supabase
+      .from('product_views')
+      .select('product_id')
+      .then(({ data }) => {
+        if (!data) return;
+        const counts: Record<string, number> = {};
+        data.forEach(({ product_id }) => {
+          counts[product_id] = (counts[product_id] ?? 0) + 1;
+        });
+        setViewCounts(counts);
+      });
+
+    // Fetch recent search queries (last 100)
+    supabase
+      .from('search_queries')
+      .select('query, searched_at')
+      .order('searched_at', { ascending: false })
+      .limit(100)
+      .then(({ data }) => {
+        if (data) setSearchQueries(data);
+      });
+  }, []);
 
   // Filter orders by selected date for Daily Order Lookup
   const filteredOrders = useMemo(() => {
@@ -90,31 +100,25 @@ const AdminOverview = ({ onNavigateToOrders }: AdminOverviewProps) => {
     });
   }, [orders, filterDate]);
 
-  // Enrich products with analytics
+  // Enrich products with real view counts
   const enriched = useMemo(() =>
-    products.map((p) => ({ ...p, analytics: getAnalytics(p.id) }))
-      .sort((a, b) => b.analytics.views - a.analytics.views),
-    [products]
+    products.map((p) => ({ ...p, views: viewCounts[p.id] ?? 0 }))
+      .sort((a, b) => b.views - a.views),
+    [products, viewCounts]
   );
 
-  const totalViews = useMemo(() => enriched.reduce((s, p) => s + p.analytics.views, 0), [enriched]);
+  const totalViews = useMemo(() => enriched.reduce((s, p) => s + p.views, 0), [enriched]);
   const topProduct = enriched[0];
 
-  // Aggregate all locations across all products
-  const regionMap = useMemo(() => {
-    const map: Record<string, { city: string; country: string; count: number }> = {};
-    enriched.forEach(({ analytics }) => {
-      analytics.locations.forEach(({ city, country, count }) => {
-        const key = `${city}-${country}`;
-        if (!map[key]) map[key] = { city, country, count: 0 };
-        map[key].count += count;
-      });
+  // Top search queries aggregated
+  const topSearches = useMemo(() => {
+    const map: Record<string, number> = {};
+    searchQueries.forEach(({ query }) => {
+      const q = query.toLowerCase().trim();
+      map[q] = (map[q] ?? 0) + 1;
     });
-    return Object.values(map).sort((a, b) => b.count - a.count);
-  }, [enriched]);
-
-  const activeRegions = regionMap.length;
-  const selectedAnalytics = selectedProduct ? getAnalytics(selectedProduct.id) : null;
+    return Object.entries(map).sort((a, b) => b[1] - a[1]).slice(0, 10);
+  }, [searchQueries]);
 
   // ── Sales data derived from real orders ─────────────────────────────────
   const salesData = useMemo(() => {
@@ -173,7 +177,7 @@ const AdminOverview = ({ onNavigateToOrders }: AdminOverviewProps) => {
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         <StatCard icon={Package} label="Total Products" value={products.length.toLocaleString()} />
         <StatCard icon={TrendingUp} label="Total Orders" value={orders.length.toLocaleString()} sub="All time" />
-        <StatCard icon={MapPin} label="Active Regions" value="—" sub="Analytics coming soon" />
+        <StatCard icon={TrendingUp} label="Total Searches" value={searchQueries.length} sub={topSearches[0] ? `Top: "${topSearches[0][0]}"` : 'No searches yet'} />
       </div>
 
       {/* ── Sales Report + Daily Order Lookup (combined card) ──────── */}
@@ -367,11 +371,11 @@ const AdminOverview = ({ onNavigateToOrders }: AdminOverviewProps) => {
                         <p className="text-muted-foreground">{p.platform}</p>
                       </div>
                     </td>
-                    <td className="px-4 py-2.5 text-right text-muted-foreground tabular-nums text-[11px]">
-                      — coming soon
+                    <td className="px-4 py-2.5 text-right text-foreground tabular-nums text-[11px]">
+                      {p.views > 0 ? p.views.toLocaleString() : <span className="text-muted-foreground">—</span>}
                     </td>
                     <td className="px-4 py-2.5 text-right text-muted-foreground tabular-nums text-[11px]">
-                      —
+                      {totalViews > 0 ? `${((p.views / totalViews) * 100).toFixed(1)}%` : '—'}
                     </td>
                     <td className="px-2 py-2.5 text-muted-foreground">
                       <ChevronRight size={12} />
@@ -383,21 +387,33 @@ const AdminOverview = ({ onNavigateToOrders }: AdminOverviewProps) => {
           </div>
         </div>
 
-        {/* Geography — Coming Soon */}
+        {/* Search Queries */}
         <div className="bg-card border border-border rounded overflow-hidden flex flex-col">
           <div className="px-4 py-3 border-b border-border">
-            <h3 className="text-[11px] tracking-[0.2em] text-muted-foreground uppercase">Visitor Geography</h3>
+            <h3 className="text-[11px] tracking-[0.2em] text-muted-foreground uppercase">Top Search Queries</h3>
           </div>
-          <div className="flex-1 flex flex-col items-center justify-center py-12 gap-2">
-            <MapPin size={28} className="text-muted-foreground/30" />
-            <p className="text-[11px] text-muted-foreground tracking-[0.15em] uppercase">Coming Soon</p>
-            <p className="text-[10px] text-muted-foreground/50">Visitor analytics will appear here</p>
-          </div>
+          {topSearches.length === 0 ? (
+            <div className="flex-1 flex flex-col items-center justify-center py-12 gap-2">
+              <p className="text-[11px] text-muted-foreground tracking-[0.15em] uppercase">No searches yet</p>
+            </div>
+          ) : (
+            <div className="divide-y divide-border">
+              {topSearches.map(([query, count], i) => (
+                <div key={query} className="px-4 py-2.5 flex items-center justify-between">
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <span className="text-[10px] text-muted-foreground w-4 text-right flex-shrink-0">{i + 1}</span>
+                    <span className="text-sm text-foreground truncate">{query}</span>
+                  </div>
+                  <span className="text-[11px] text-primary tabular-nums flex-shrink-0 ml-3">{count}×</span>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
 
       {/* ── 4. Granular Insight Modal ─────────────────────────────────── */}
-      {selectedProduct && selectedAnalytics && (
+      {selectedProduct && (
         <>
           <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50" onClick={() => setSelectedProduct(null)} />
           <div className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-full max-w-md bg-card border border-border rounded-lg shadow-2xl animate-fade-in">
@@ -413,7 +429,7 @@ const AdminOverview = ({ onNavigateToOrders }: AdminOverviewProps) => {
                   <p className="text-sm text-foreground font-medium truncate">
                     {selectedProduct.title.startsWith('「') ? selectedProduct.title : `「${selectedProduct.title}」`}
                   </p>
-                  <p className="text-[10px] text-muted-foreground">{selectedProduct.platform} · {selectedAnalytics.views.toLocaleString()} views</p>
+                  <p className="text-[10px] text-muted-foreground">{selectedProduct.platform} · {(viewCounts[selectedProduct.id] ?? 0).toLocaleString()} views</p>
                 </div>
               </div>
               <button onClick={() => setSelectedProduct(null)} className="text-muted-foreground hover:text-foreground flex-shrink-0 ml-2">
@@ -421,43 +437,17 @@ const AdminOverview = ({ onNavigateToOrders }: AdminOverviewProps) => {
               </button>
             </div>
 
-            {/* Location list */}
+            {/* View count summary */}
             <div className="px-5 py-4">
-              <p className="text-[10px] tracking-[0.15em] text-muted-foreground uppercase mb-3">Visitor Locations</p>
-              {selectedAnalytics.locations.length === 0 ? (
-                <p className="text-sm text-muted-foreground">No location data available.</p>
-              ) : (
-                <div className="space-y-2">
-                  {selectedAnalytics.locations.map(({ city, country, count }, i) => {
-                    const pct = selectedAnalytics.views > 0
-                      ? ((count / selectedAnalytics.views) * 100).toFixed(1)
-                      : '0';
-                    return (
-                      <div key={`${city}-${i}`} className="flex items-center justify-between">
-                        <div className="flex items-center gap-2 text-[11px]">
-                          <MapPin size={11} className="text-primary flex-shrink-0" />
-                          <span className="text-foreground">Visitor {i + 1}:</span>
-                          <span className="text-muted-foreground">{city}, {country}</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <div className="w-16 h-1 bg-secondary rounded-full overflow-hidden">
-                            <div className="h-full bg-primary rounded-full" style={{ width: `${pct}%` }} />
-                          </div>
-                          <span className="text-[10px] text-primary tabular-nums w-8 text-right">{pct}%</span>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
-
-            {/* Summary footer */}
-            <div className="px-5 py-3 border-t border-border bg-secondary/20 rounded-b-lg">
-              <div className="flex justify-between text-[11px]">
-                <span className="text-muted-foreground">Daily change</span>
-                <span className={selectedAnalytics.dailyChange >= 0 ? 'text-green-500' : 'text-destructive'}>
-                  {selectedAnalytics.dailyChange >= 0 ? '+' : ''}{selectedAnalytics.dailyChange.toFixed(1)}%
+              <p className="text-[10px] tracking-[0.15em] text-muted-foreground uppercase mb-3">View Statistics</p>
+              <div className="flex justify-between text-sm">
+                <span className="text-muted-foreground">Total Views</span>
+                <span className="text-primary font-medium">{(viewCounts[selectedProduct.id] ?? 0).toLocaleString()}</span>
+              </div>
+              <div className="flex justify-between text-sm mt-2">
+                <span className="text-muted-foreground">Share of all views</span>
+                <span className="text-foreground">
+                  {totalViews > 0 ? `${(((viewCounts[selectedProduct.id] ?? 0) / totalViews) * 100).toFixed(1)}%` : '—'}
                 </span>
               </div>
             </div>

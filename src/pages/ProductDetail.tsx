@@ -4,6 +4,7 @@ import { ArrowLeft, RotateCcw, Info, ShoppingBag, Check } from 'lucide-react';
 import { useProductStore } from '@/stores/useProductStore';
 import { useCartStore } from '@/stores/useCartStore';
 import { useAppStore } from '@/stores/useAppStore';
+import { supabase } from '@/lib/supabase';
 
 const ProductDetail = () => {
   const { id } = useParams();
@@ -15,6 +16,12 @@ const ProductDetail = () => {
   const [showConditionTooltip, setShowConditionTooltip] = useState(false);
   const [backVisible, setBackVisible] = useState(true);
   const lastScrollY = useRef(0);
+
+  // Track product view
+  useEffect(() => {
+    if (!id) return;
+    supabase.from('product_views').insert({ product_id: id });
+  }, [id]);
 
   useEffect(() => {
     const handler = () => {

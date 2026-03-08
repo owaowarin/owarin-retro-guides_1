@@ -1,6 +1,7 @@
 import { useRef, useState, type KeyboardEvent } from 'react';
 import { Search } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { supabase } from '@/lib/supabase';
 
 export interface GlobalSearchSuggestion {
   id: string;
@@ -72,9 +73,13 @@ export const GlobalSearch = ({
       e.preventDefault();
       // ถ้ามี activeIndex → select suggestion นั้น
       if (open && activeIndex >= 0 && suggestions[activeIndex]) {
+        const q = suggestions[activeIndex].label;
+        supabase.from('search_queries').insert({ query: q });
         onSelectSuggestion(suggestions[activeIndex]);
       } else {
         // กด Enter โดยไม่ select → search ด้วยสิ่งที่พิมพ์อยู่ (free-form)
+        const q = value.trim();
+        if (q) supabase.from('search_queries').insert({ query: q });
         onSearch?.(value);
       }
       // ปิด dropdown ทันที ไม่ว่าจะเกิดอะไรขึ้น
@@ -85,6 +90,7 @@ export const GlobalSearch = ({
   };
 
   const handleSelect = (s: GlobalSearchSuggestion) => {
+    supabase.from('search_queries').insert({ query: s.label });
     onSelectSuggestion(s);
     closeDropdown();
     inputRef.current?.blur();
