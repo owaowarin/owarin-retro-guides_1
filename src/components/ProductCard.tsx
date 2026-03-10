@@ -14,10 +14,11 @@ const ProductCard = ({ product }: ProductCardProps) => {
   const isSoldOut = product.statusTag === 'soldOut';
   const isInCart = items.some((i) => i.productId === product.id);
 
-  // ─── Discount calculation ───────────────────────────────────────────────
-  const hasDiscount = discountRate > 0;
-  const discountedPrice = hasDiscount ? Math.round(product.price * (1 - discountRate / 100)) : product.price;
-  const discountPercent = Math.round(discountRate);
+  // ─── Discount calculation (ปิดชั่วคราว) ─────────────────────────────────
+  const hasDiscount = false; // discountRate > 0 — disabled
+  const discountedPrice = product.price;
+  const discountPercent = 0;
+  void discountRate; // suppress unused warning
   // ───────────────────────────────────────────────────────────────────────
 
   const handleAddToCart = (e: React.MouseEvent) => {

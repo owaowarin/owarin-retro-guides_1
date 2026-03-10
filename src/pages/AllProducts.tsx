@@ -37,8 +37,9 @@ const AllProducts = () => {
 
   const selectedPlatform = searchParams.get('platform') || '';
   const selectedGenre = searchParams.get('genre') || '';
+  const selectedPublisher = searchParams.get('publisher') || '';
 
-  /* ── Live inventory: only platforms/genres with stock > 0 ── */
+  /* ── Live inventory: only platforms/publishers with stock > 0 ── */
   const livePlatforms = useMemo(() => {
     const set = new Set(
       products
@@ -48,11 +49,11 @@ const AllProducts = () => {
     return Array.from(set).filter(Boolean).sort();
   }, [products]);
 
-  const liveGenres = useMemo(() => {
+  const livePublishers = useMemo(() => {
     const set = new Set(
       products
         .filter((p) => p.statusTag !== 'soldOut' && !p.hidden)
-        .flatMap((p) => p.genre.split(/[,/]\s*/).map((s) => s.trim()))
+        .flatMap((p) => p.publisher.split(/[,/]\s*/).map((s) => s.trim()))
     );
     return Array.from(set).filter(Boolean).sort();
   }, [products]);
@@ -74,6 +75,7 @@ const AllProducts = () => {
       }
       if (selectedPlatform && !p.platform.split(/[,/]\s*/).map((s) => s.trim()).includes(selectedPlatform)) return false;
       if (selectedGenre && !p.genre.split(/[,/]\s*/).map((s) => s.trim()).includes(selectedGenre)) return false;
+      if (selectedPublisher && !p.publisher.split(/[,/]\s*/).map((s) => s.trim()).includes(selectedPublisher)) return false;
       if (avail === 'available' && (p.statusTag === 'soldOut')) return false;
       if (avail === 'soldout' && p.statusTag !== 'soldOut' && p.statusTag !== 'soldOut') return false;
       return true;
@@ -84,13 +86,13 @@ const AllProducts = () => {
     else if (sort === 'priceDesc') sorted.sort((a, b) => b.price - a.price);
     else sorted.reverse(); // newArrivals = last added first
     return sorted;
-  }, [products, search, selectedPlatform, selectedGenre, avail, sort]);
+  }, [products, search, selectedPlatform, selectedGenre, selectedPublisher, avail, sort]);
 
   const totalPages = Math.ceil(filtered.length / ITEMS_PER_PAGE);
   const paginated = filtered.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE);
 
   /* ── Reset page on filter change ── */
-  useEffect(() => { setPage(1); }, [search, selectedPlatform, selectedGenre, avail, sort]);
+  useEffect(() => { setPage(1); }, [search, selectedPlatform, selectedGenre, selectedPublisher, avail, sort]);
 
   /* ── Close drawer on outside click ── */
   useEffect(() => {
@@ -117,7 +119,7 @@ const AllProducts = () => {
     setSearch('');
   };
 
-  const hasFilters = selectedPlatform || selectedGenre || avail || search;
+  const hasFilters = selectedPlatform || selectedGenre || selectedPublisher || avail || search;
 
   const suggestions: GlobalSearchSuggestion[] = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -195,14 +197,14 @@ const AllProducts = () => {
             <button
               onClick={() => setDrawerOpen(true)}
               className={`flex items-center gap-1.5 px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-full border text-[11px] tracking-[0.12em] transition-all duration-300 ${
-                selectedPlatform || selectedGenre ? 'border-primary text-primary' : 'border-border text-muted-foreground hover:text-primary hover:border-primary'
+                selectedPlatform || selectedPublisher ? 'border-primary text-primary' : 'border-border text-muted-foreground hover:text-primary hover:border-primary'
               } ${scrolled ? 'bg-background/55 backdrop-blur-md' : 'bg-background/80 backdrop-blur-sm'}`}
             >
               <SlidersHorizontal size={12} />
               <span className="hidden sm:inline">FILTER</span>
-              {(selectedPlatform || selectedGenre) && (
+              {(selectedPlatform || selectedPublisher) && (
                 <span className="w-4 h-4 rounded-full bg-primary text-primary-foreground text-[9px] flex items-center justify-center">
-                  {[selectedPlatform, selectedGenre].filter(Boolean).length}
+                  {[selectedPlatform, selectedPublisher].filter(Boolean).length}
                 </span>
               )}
             </button>
@@ -224,6 +226,12 @@ const AllProducts = () => {
               <span className="inline-flex items-center gap-1 border border-primary/40 text-primary text-[11px] rounded-full px-2.5 py-0.5">
                 {selectedGenre}
                 <button onClick={() => setFilter('genre', '')}><X size={10} /></button>
+              </span>
+            )}
+            {selectedPublisher && (
+              <span className="inline-flex items-center gap-1 border border-primary/40 text-primary text-[11px] rounded-full px-2.5 py-0.5">
+                {selectedPublisher}
+                <button onClick={() => setFilter('publisher', '')}><X size={10} /></button>
               </span>
             )}
             <button onClick={clearAll} className="text-[11px] text-muted-foreground underline hover:text-primary transition-colors ml-1">
@@ -411,25 +419,25 @@ const AllProducts = () => {
                 </div>
               )}
 
-              {/* GENRE — live inventory only */}
-              {liveGenres.length > 0 && (
+              {/* PUBLISHER — live inventory only */}
+              {livePublishers.length > 0 && (
                 <div>
-                  <h3 className="text-[10px] tracking-[0.25em] text-[#D4AF37] uppercase mb-3">GENRE</h3>
+                  <h3 className="text-[10px] tracking-[0.25em] text-[#D4AF37] uppercase mb-3">PUBLISHER</h3>
                   <div className="space-y-0.5">
-                    {liveGenres.map((g) => (
+                    {livePublishers.map((pub) => (
                       <button
-                        key={g}
+                        key={pub}
                         onClick={() => {
-                          setFilter('genre', selectedGenre === g ? '' : g);
+                          setFilter('publisher', selectedPublisher === pub ? '' : pub);
                         }}
                         className={`w-full text-left px-2 py-2 text-[11px] tracking-[0.15em] rounded transition-colors ${
-                          selectedGenre === g
+                          selectedPublisher === pub
                             ? 'text-primary'
                             : 'text-muted-foreground hover:text-foreground'
                         }`}
                       >
-                        {selectedGenre === g && <span className="mr-2 text-primary">·</span>}
-                        {g}
+                        {selectedPublisher === pub && <span className="mr-2 text-primary">·</span>}
+                        {pub}
                       </button>
                     ))}
                   </div>

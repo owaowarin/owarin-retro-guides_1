@@ -49,9 +49,10 @@ const ProductDetail = () => {
     );
   }
 
-  const hasDiscount = discountRate > 0;
-  const discountedPrice = hasDiscount ? Math.round(product.price * (1 - discountRate / 100)) : product.price;
-  const discountPercent = Math.round(discountRate);
+  const hasDiscount = false; // discountRate — disabled
+  const discountedPrice = product.price;
+  const discountPercent = 0;
+  void discountRate;
 
   const handleAdd = () => {
     if (!isInCart && !isSoldOut) {
@@ -127,9 +128,10 @@ const ProductDetail = () => {
             <div className="flex flex-wrap gap-1.5 mb-2">
               {product.platform
                 ? product.platform.split('/').map((s) => s.trim()).filter(Boolean).map((plat) => (
-                    <span key={plat} className="text-[11px] font-medium text-foreground/80 tracking-[0.1em] uppercase bg-secondary border border-border rounded px-2 py-0.5">
+                    <Link key={plat} to={`/all?platform=${encodeURIComponent(plat)}`}
+                      className="text-[11px] font-medium text-foreground/80 tracking-[0.1em] uppercase bg-secondary border border-border rounded px-2 py-0.5 hover:border-primary hover:text-primary transition-colors cursor-pointer">
                       {plat}
-                    </span>
+                    </Link>
                   ))
                 : null}
             </div>
@@ -231,9 +233,10 @@ const ProductDetail = () => {
                   <div className="flex flex-wrap gap-1.5">
                     {product.developer
                       ? product.developer.split(',').map((d) => d.trim()).filter(Boolean).map((d) => (
-                          <span key={d} className="text-xs text-foreground border border-white/10 bg-white/5 rounded-sm px-2 py-0.5">
+                          <Link key={d} to={`/all?search=${encodeURIComponent(d)}`}
+                            className="text-xs text-foreground border border-white/10 bg-white/5 rounded-sm px-2 py-0.5 hover:border-primary/50 hover:text-primary transition-colors cursor-pointer">
                             {d}
-                          </span>
+                          </Link>
                         ))
                       : <span className="text-sm text-foreground">—</span>
                     }
@@ -246,9 +249,10 @@ const ProductDetail = () => {
                   <div className="flex flex-wrap gap-1.5">
                     {product.publisher
                       ? product.publisher.split(',').map((p) => p.trim()).filter(Boolean).map((p) => (
-                          <span key={p} className="text-xs text-foreground border border-white/10 bg-white/5 rounded-sm px-2 py-0.5">
+                          <Link key={p} to={`/all?publisher=${encodeURIComponent(p)}`}
+                            className="text-xs text-foreground border border-white/10 bg-white/5 rounded-sm px-2 py-0.5 hover:border-primary/50 hover:text-primary transition-colors cursor-pointer">
                             {p}
-                          </span>
+                          </Link>
                         ))
                       : <span className="text-sm text-foreground">—</span>
                     }
@@ -261,9 +265,10 @@ const ProductDetail = () => {
                   <div className="flex flex-wrap gap-1.5">
                     {product.genre
                       ? product.genre.split(',').map((g) => g.trim()).filter(Boolean).map((g) => (
-                          <span key={g} className="text-xs text-[#C6A355] border border-[#C6A355]/20 bg-[#C6A355]/5 rounded-sm px-2 py-0.5">
+                          <Link key={g} to={`/all?genre=${encodeURIComponent(g)}`}
+                            className="text-xs text-[#C6A355] border border-[#C6A355]/20 bg-[#C6A355]/5 rounded-sm px-2 py-0.5 hover:border-[#C6A355]/60 hover:bg-[#C6A355]/10 transition-colors cursor-pointer">
                             {g}
-                          </span>
+                          </Link>
                         ))
                       : <span className="text-sm text-foreground">—</span>
                     }
