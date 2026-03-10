@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { Search, SlidersHorizontal, X } from 'lucide-react';
+import { SlidersHorizontal, X, ChevronDown } from 'lucide-react';
 import ProductCard from '@/components/ProductCard';
 import { useProductStore } from '@/stores/useProductStore';
 import { GlobalSearch, GlobalSearchSuggestion } from '@/components/GlobalSearch';
@@ -32,6 +32,11 @@ const AllProducts = () => {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [page, setPage] = useState(1);
   const drawerRef = useRef<HTMLDivElement>(null);
+  const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
+    sort: true, platform: false, publisher: false, genre: false,
+  });
+  const toggleSection = (key: string) =>
+    setExpandedSections((prev) => ({ ...prev, [key]: !prev[key] }));
 
   const products = useProductStore((s) => s.products);
 
@@ -54,6 +59,15 @@ const AllProducts = () => {
       products
         .filter((p) => p.statusTag !== 'soldOut' && !p.hidden)
         .flatMap((p) => p.publisher.split(/[,/]\s*/).map((s) => s.trim()))
+    );
+    return Array.from(set).filter(Boolean).sort();
+  }, [products]);
+
+  const liveGenres = useMemo(() => {
+    const set = new Set(
+      products
+        .filter((p) => p.statusTag !== 'soldOut' && !p.hidden)
+        .flatMap((p) => p.genre.split(/[,/]\s*/).map((s) => s.trim()))
     );
     return Array.from(set).filter(Boolean).sort();
   }, [products]);
@@ -367,80 +381,132 @@ const AllProducts = () => {
               </button>
             </div>
 
-            <div className="flex-1 px-5 py-4 space-y-8">
+            <div className="flex-1 overflow-y-auto">
 
-              {/* SORT */}
-              <div>
-                <h3 className="text-[10px] tracking-[0.25em] text-[#D4AF37] uppercase mb-3">SORT</h3>
-                <div className="space-y-0.5">
-                  {([
-                    ['newArrivals', 'NEW ARRIVAL'],
-                    ['priceAsc', 'PRICE: LOW TO HIGH'],
-                    ['priceDesc', 'PRICE: HIGH TO LOW'],
-                  ] as [SortOption, string][]).map(([val, label]) => (
-                    <button
-                      key={val}
-                      onClick={() => setSort(val)}
-                      className={`w-full text-left px-2 py-2 text-[11px] tracking-[0.15em] rounded transition-colors ${
-                        sort === val
-                          ? 'text-primary'
-                          : 'text-muted-foreground hover:text-foreground'
-                      }`}
-                    >
-                      {sort === val && <span className="mr-2 text-primary">·</span>}
-                      {label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* PLATFORM — live inventory only */}
-              {livePlatforms.length > 0 && (
-                <div>
-                  <h3 className="text-[10px] tracking-[0.25em] text-[#D4AF37] uppercase mb-3">PLATFORM</h3>
-                  <div className="space-y-0.5">
-                    {livePlatforms.map((p) => (
+              {/* SORT — collapsible */}
+              <div className="border-b border-border">
+                <button
+                  onClick={() => toggleSection('sort')}
+                  className="w-full flex items-center justify-between px-5 py-4 text-[10px] tracking-[0.25em] text-[#D4AF37] uppercase hover:text-primary transition-colors"
+                >
+                  SORT
+                  <ChevronDown size={14} className={`transition-transform duration-200 ${expandedSections.sort ? 'rotate-180' : ''}`} />
+                </button>
+                {expandedSections.sort && (
+                  <div className="px-5 pb-4 space-y-0.5">
+                    {([
+                      ['newArrivals', 'NEW ARRIVAL'],
+                      ['priceAsc', 'PRICE: LOW TO HIGH'],
+                      ['priceDesc', 'PRICE: HIGH TO LOW'],
+                    ] as [SortOption, string][]).map(([val, label]) => (
                       <button
-                        key={p}
-                        onClick={() => {
-                          setFilter('platform', selectedPlatform === p ? '' : p);
-                        }}
+                        key={val}
+                        onClick={() => setSort(val)}
                         className={`w-full text-left px-2 py-2 text-[11px] tracking-[0.15em] rounded transition-colors ${
-                          selectedPlatform === p
-                            ? 'text-primary'
-                            : 'text-muted-foreground hover:text-foreground'
+                          sort === val ? 'text-primary' : 'text-muted-foreground hover:text-foreground'
                         }`}
                       >
-                        {selectedPlatform === p && <span className="mr-2 text-primary">·</span>}
-                        {p}
+                        {sort === val && <span className="mr-2 text-primary">·</span>}
+                        {label}
                       </button>
                     ))}
                   </div>
+                )}
+              </div>
+
+              {/* PLATFORM — collapsible */}
+              {livePlatforms.length > 0 && (
+                <div className="border-b border-border">
+                  <button
+                    onClick={() => toggleSection('platform')}
+                    className="w-full flex items-center justify-between px-5 py-4 text-[10px] tracking-[0.25em] text-[#D4AF37] uppercase hover:text-primary transition-colors"
+                  >
+                    <span className="flex items-center gap-2">
+                      PLATFORM
+                      {selectedPlatform && <span className="w-1.5 h-1.5 rounded-full bg-primary inline-block" />}
+                    </span>
+                    <ChevronDown size={14} className={`transition-transform duration-200 ${expandedSections.platform ? 'rotate-180' : ''}`} />
+                  </button>
+                  {expandedSections.platform && (
+                    <div className="px-5 pb-4 space-y-0.5">
+                      {livePlatforms.map((p) => (
+                        <button
+                          key={p}
+                          onClick={() => setFilter('platform', selectedPlatform === p ? '' : p)}
+                          className={`w-full text-left px-2 py-2 text-[11px] tracking-[0.15em] rounded transition-colors ${
+                            selectedPlatform === p ? 'text-primary' : 'text-muted-foreground hover:text-foreground'
+                          }`}
+                        >
+                          {selectedPlatform === p && <span className="mr-2 text-primary">·</span>}
+                          {p}
+                        </button>
+                      ))}
+                    </div>
+                  )}
                 </div>
               )}
 
-              {/* PUBLISHER — live inventory only */}
+              {/* PUBLISHER — collapsible */}
               {livePublishers.length > 0 && (
-                <div>
-                  <h3 className="text-[10px] tracking-[0.25em] text-[#D4AF37] uppercase mb-3">PUBLISHER</h3>
-                  <div className="space-y-0.5">
-                    {livePublishers.map((pub) => (
-                      <button
-                        key={pub}
-                        onClick={() => {
-                          setFilter('publisher', selectedPublisher === pub ? '' : pub);
-                        }}
-                        className={`w-full text-left px-2 py-2 text-[11px] tracking-[0.15em] rounded transition-colors ${
-                          selectedPublisher === pub
-                            ? 'text-primary'
-                            : 'text-muted-foreground hover:text-foreground'
-                        }`}
-                      >
-                        {selectedPublisher === pub && <span className="mr-2 text-primary">·</span>}
-                        {pub}
-                      </button>
-                    ))}
-                  </div>
+                <div className="border-b border-border">
+                  <button
+                    onClick={() => toggleSection('publisher')}
+                    className="w-full flex items-center justify-between px-5 py-4 text-[10px] tracking-[0.25em] text-[#D4AF37] uppercase hover:text-primary transition-colors"
+                  >
+                    <span className="flex items-center gap-2">
+                      PUBLISHER
+                      {selectedPublisher && <span className="w-1.5 h-1.5 rounded-full bg-primary inline-block" />}
+                    </span>
+                    <ChevronDown size={14} className={`transition-transform duration-200 ${expandedSections.publisher ? 'rotate-180' : ''}`} />
+                  </button>
+                  {expandedSections.publisher && (
+                    <div className="px-5 pb-4 space-y-0.5">
+                      {livePublishers.map((pub) => (
+                        <button
+                          key={pub}
+                          onClick={() => setFilter('publisher', selectedPublisher === pub ? '' : pub)}
+                          className={`w-full text-left px-2 py-2 text-[11px] tracking-[0.15em] rounded transition-colors ${
+                            selectedPublisher === pub ? 'text-primary' : 'text-muted-foreground hover:text-foreground'
+                          }`}
+                        >
+                          {selectedPublisher === pub && <span className="mr-2 text-primary">·</span>}
+                          {pub}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* GENRE — collapsible */}
+              {liveGenres.length > 0 && (
+                <div className="border-b border-border">
+                  <button
+                    onClick={() => toggleSection('genre')}
+                    className="w-full flex items-center justify-between px-5 py-4 text-[10px] tracking-[0.25em] text-[#D4AF37] uppercase hover:text-primary transition-colors"
+                  >
+                    <span className="flex items-center gap-2">
+                      GENRE
+                      {selectedGenre && <span className="w-1.5 h-1.5 rounded-full bg-primary inline-block" />}
+                    </span>
+                    <ChevronDown size={14} className={`transition-transform duration-200 ${expandedSections.genre ? 'rotate-180' : ''}`} />
+                  </button>
+                  {expandedSections.genre && (
+                    <div className="px-5 pb-4 space-y-0.5">
+                      {liveGenres.map((g) => (
+                        <button
+                          key={g}
+                          onClick={() => setFilter('genre', selectedGenre === g ? '' : g)}
+                          className={`w-full text-left px-2 py-2 text-[11px] tracking-[0.15em] rounded transition-colors ${
+                            selectedGenre === g ? 'text-primary' : 'text-muted-foreground hover:text-foreground'
+                          }`}
+                        >
+                          {selectedGenre === g && <span className="mr-2 text-primary">·</span>}
+                          {g}
+                        </button>
+                      ))}
+                    </div>
+                  )}
                 </div>
               )}
             </div>

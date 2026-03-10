@@ -128,7 +128,7 @@ const ProductDetail = () => {
             <div className="flex flex-wrap gap-1.5 mb-2">
               {product.platform
                 ? product.platform.split('/').map((s) => s.trim()).filter(Boolean).map((plat) => (
-                    <Link key={plat} to={`/all?platform=${encodeURIComponent(plat)}`}
+                    <Link key={plat} to={`/all-products?platform=${encodeURIComponent(plat)}`}
                       className="text-[11px] font-medium text-foreground/80 tracking-[0.1em] uppercase bg-secondary border border-border rounded px-2 py-0.5 hover:border-primary hover:text-primary transition-colors cursor-pointer">
                       {plat}
                     </Link>
@@ -233,7 +233,7 @@ const ProductDetail = () => {
                   <div className="flex flex-wrap gap-1.5">
                     {product.developer
                       ? product.developer.split(',').map((d) => d.trim()).filter(Boolean).map((d) => (
-                          <Link key={d} to={`/all?search=${encodeURIComponent(d)}`}
+                          <Link key={d} to={`/all-products?search=${encodeURIComponent(d)}`}
                             className="text-xs text-foreground border border-white/10 bg-white/5 rounded-sm px-2 py-0.5 hover:border-primary/50 hover:text-primary transition-colors cursor-pointer">
                             {d}
                           </Link>
@@ -249,7 +249,7 @@ const ProductDetail = () => {
                   <div className="flex flex-wrap gap-1.5">
                     {product.publisher
                       ? product.publisher.split(',').map((p) => p.trim()).filter(Boolean).map((p) => (
-                          <Link key={p} to={`/all?publisher=${encodeURIComponent(p)}`}
+                          <Link key={p} to={`/all-products?publisher=${encodeURIComponent(p)}`}
                             className="text-xs text-foreground border border-white/10 bg-white/5 rounded-sm px-2 py-0.5 hover:border-primary/50 hover:text-primary transition-colors cursor-pointer">
                             {p}
                           </Link>
@@ -265,7 +265,7 @@ const ProductDetail = () => {
                   <div className="flex flex-wrap gap-1.5">
                     {product.genre
                       ? product.genre.split(',').map((g) => g.trim()).filter(Boolean).map((g) => (
-                          <Link key={g} to={`/all?genre=${encodeURIComponent(g)}`}
+                          <Link key={g} to={`/all-products?genre=${encodeURIComponent(g)}`}
                             className="text-xs text-[#C6A355] border border-[#C6A355]/20 bg-[#C6A355]/5 rounded-sm px-2 py-0.5 hover:border-[#C6A355]/60 hover:bg-[#C6A355]/10 transition-colors cursor-pointer">
                             {g}
                           </Link>
