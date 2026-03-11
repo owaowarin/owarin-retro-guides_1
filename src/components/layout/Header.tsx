@@ -91,7 +91,11 @@ const Header = ({ onMenuToggle, onCartOpen }: HeaderProps) => {
       </div>
 
       {/* ── Row 2: Platform bar ── */}
-      <div className="border-t border-white/5 overflow-x-auto scrollbar-hide">
+      <div
+        className="border-t border-white/5 overflow-x-auto scrollbar-hide"
+        style={{ touchAction: 'pan-x' }}
+        onWheel={(e) => { if (e.deltaY === 0) return; e.preventDefault(); e.currentTarget.scrollLeft += e.deltaY; }}
+      >
         <div className="flex items-stretch px-2 h-9 w-max min-w-full">
           <Link to="/all-products"
             className={`font-mono text-[10px] tracking-[0.2em] uppercase px-3 flex items-center whitespace-nowrap transition-colors border-b-[1.5px] ${
