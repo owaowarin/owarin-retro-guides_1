@@ -2,7 +2,6 @@ import { Link } from 'react-router-dom';
 import { Plus, Check } from 'lucide-react';
 import type { Product } from '@/stores/useProductStore';
 import { useCartStore } from '@/stores/useCartStore';
-import { useAppStore } from '@/stores/useAppStore';
 
 interface ProductCardProps {
   product: Product;
@@ -11,8 +10,6 @@ interface ProductCardProps {
 
 const ProductCard = ({ product, priority = false }: ProductCardProps) => {
   const { items, toggleItem } = useCartStore();
-  const discountRate = useAppStore((s) => s.discountRate);
-  void discountRate;
 
   const isSoldOut = product.statusTag === 'soldOut';
   const isInCart = items.some((i) => i.productId === product.id);

@@ -3,7 +3,6 @@ import { useParams, Link, useNavigate } from 'react-router-dom';
 import { Info, ShoppingBag, Check } from 'lucide-react';
 import { useProductStore } from '@/stores/useProductStore';
 import { useCartStore } from '@/stores/useCartStore';
-import { useAppStore } from '@/stores/useAppStore';
 import { supabase } from '@/lib/supabase';
 
 /* ── Inject Cormorant Garamond once ── */
@@ -21,7 +20,6 @@ const ProductDetail = () => {
   const navigate = useNavigate();
   const product = useProductStore((s) => s.products.find((p) => p.id === id && !p.hidden));
   const conditionGrades = useAppStore((s) => s.conditionGrades);
-  const discountRate = useAppStore((s) => s.discountRate);
   const { items, addItem } = useCartStore();
 
   const [showBack, setShowBack] = useState(false);
@@ -37,10 +35,6 @@ const ProductDetail = () => {
   const isInCart = items.some((i) => i.productId === id);
   const isSoldOut = product?.statusTag === 'soldOut';
 
-  // Discount disabled
-  const hasDiscount = false;
-  const discountedPrice = product?.price ?? 0;
-  void discountRate; void hasDiscount;
 
   if (!product) {
     return (
@@ -55,7 +49,7 @@ const ProductDetail = () => {
       addItem({
         productId: product.id,
         title: product.title,
-        price: discountedPrice,
+        price: product.price,
         platform: product.platform,
         frontImage: product.frontImage,
       });
@@ -70,6 +64,7 @@ const ProductDetail = () => {
   };
 
   const gradeInfo = conditionGrades.find((g) => g.code === product.condition);
+  const displayTitle = product.title.replace(/^「|」$/g, '');
 
   /* ── shared class shortcuts ── */
   const monoLabel = 'font-mono text-[8px] tracking-[0.22em] uppercase text-white/30 pt-0.5';
@@ -170,7 +165,7 @@ const ProductDetail = () => {
               style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontWeight: 300, lineHeight: 1.1 }}
               className="text-[30px] lg:text-[36px] text-white/88 mb-4 tracking-[0.01em]"
             >
-              {product.title}
+              {displayTitle}
             </h1>
 
             {/* Platform tags */}
@@ -190,7 +185,7 @@ const ProductDetail = () => {
             {/* Price */}
             <div className="flex items-baseline gap-2.5 mb-7">
               <span className="font-mono text-[22px] font-bold text-[#D4AF37] tracking-tight lining-nums">
-                {discountedPrice.toLocaleString()}
+                {product.price.toLocaleString()}
               </span>
               <span className="font-mono text-[10px] text-white/22 tracking-[0.18em]">THB</span>
             </div>

@@ -1524,7 +1524,6 @@ const StoreInfoSubTab = () => {
       heroFontSize: heroFS,
       taglineFontSize: taglineFS,
       subtextFontSize: subtextFS,
-      discountRate: 0,
     });
     toast.success('Store info updated');
   };
