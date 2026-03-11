@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
-import { useAppStore } from '@/stores/useAppStore';
+import { appConfig } from './appConfig';
 
 interface CartItem {
   productId: string;
@@ -54,7 +54,7 @@ export const useCartStore = create<CartStore>()(
       getShippingCost: () => {
         const count = get().items.length;
         if (count === 0) return 0;
-        const fee = useAppStore.getState().shippingFee ?? 70;
+        const fee = appConfig.shippingFee ?? 70;
         return fee;
       },
 

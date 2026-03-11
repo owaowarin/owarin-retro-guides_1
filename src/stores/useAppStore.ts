@@ -1,6 +1,7 @@
 // src/stores/useAppStore.ts
 import { create } from 'zustand';
 import { supabase } from '@/lib/supabase';
+import { appConfig } from './appConfig';
 
 interface Order {
   id: string;
@@ -152,6 +153,7 @@ export const useAppStore = create<AppStore>((set, get) => ({
       thankYouConfig: { ...defaultThankYouConfig, ...thankYou },
       conditionGrades: (map['conditionGrades'] as ConditionGrade[]) ?? [],
     });
+    appConfig.shippingFee = payment.shippingFee ?? 70;
   },
 
   fetchOrders: async () => {
@@ -232,6 +234,7 @@ export const useAppStore = create<AppStore>((set, get) => ({
   },
   setShippingFee: async (fee) => {
     set({ shippingFee: fee });
+    appConfig.shippingFee = fee;
     const s = get();
     await saveSetting('payment', { bankName: s.bankName, bankAccount: s.bankAccount, bankHolder: s.bankHolder, qrCodeUrl: s.qrCodeUrl, customerNote: s.customerNote, shippingFee: fee });
   },
