@@ -3,18 +3,20 @@ import { Link } from 'react-router-dom';
 import ProductCard from '@/components/ProductCard';
 import { useProductStore } from '@/stores/useProductStore';
 
-/* ── Nostos-style carousel with dot indicator ── */
+/* ── Nostos-style carousel: large cards, overlay arrows, centered dots ── */
 const NewArrivalsCarousel = ({ products }: { products: ReturnType<typeof useProductStore.getState>['products'] }) => {
   const scrollRef = useRef<HTMLDivElement>(null);
   const [activeIdx, setActiveIdx] = useState(0);
 
-  /* Sync dot with scroll position */
+  /* Sync dot with scroll */
   useEffect(() => {
     const el = scrollRef.current;
     if (!el) return;
     const handler = () => {
-      const cardWidth = el.firstElementChild?.clientWidth ?? 160;
-      const gap = 12;
+      const first = el.firstElementChild as HTMLElement | null;
+      if (!first) return;
+      const cardWidth = first.offsetWidth;
+      const gap = 16; // gap-4
       const idx = Math.round(el.scrollLeft / (cardWidth + gap));
       setActiveIdx(Math.min(idx, products.length - 1));
     };
@@ -25,8 +27,10 @@ const NewArrivalsCarousel = ({ products }: { products: ReturnType<typeof useProd
   const scrollTo = (idx: number) => {
     const el = scrollRef.current;
     if (!el) return;
-    const cardWidth = el.firstElementChild?.clientWidth ?? 160;
-    const gap = 12;
+    const first = el.firstElementChild as HTMLElement | null;
+    if (!first) return;
+    const cardWidth = first.offsetWidth;
+    const gap = 16;
     el.scrollTo({ left: idx * (cardWidth + gap), behavior: 'smooth' });
     setActiveIdx(idx);
   };
@@ -35,54 +39,54 @@ const NewArrivalsCarousel = ({ products }: { products: ReturnType<typeof useProd
   const next = () => scrollTo(Math.min(products.length - 1, activeIdx + 1));
 
   return (
-    <div>
-      {/* Cards */}
+    <div className="relative">
+      {/* Cards strip */}
       <div
         ref={scrollRef}
-        className="flex gap-3 overflow-x-auto pb-1 snap-x snap-mandatory scrollbar-hide"
+        className="flex gap-4 overflow-x-auto pb-1 snap-x snap-mandatory scrollbar-hide"
       >
         {products.map((product) => (
-          <div key={product.id}
-            className="w-[44vw] max-w-[165px] sm:max-w-[190px] flex-shrink-0 snap-start">
+          <div
+            key={product.id}
+            className="w-[75vw] sm:w-[42vw] md:w-[30vw] lg:w-[22vw] xl:w-[18vw] max-w-[320px] flex-shrink-0 snap-start"
+          >
             <ProductCard product={product} />
           </div>
         ))}
       </div>
 
-      {/* Controls: arrows + dots */}
-      <div className="flex items-center justify-between mt-4 px-0.5">
-        {/* Prev/Next arrows */}
-        <div className="flex items-center gap-2">
-          <button
-            onClick={prev}
-            disabled={activeIdx === 0}
-            className="w-6 h-6 flex items-center justify-center border border-white/10 text-white/30 hover:border-[#C4A35B]/50 hover:text-[#C4A35B] transition-colors disabled:opacity-20 font-mono text-[11px]"
-          >
-            ‹
-          </button>
-          <button
-            onClick={next}
-            disabled={activeIdx === products.length - 1}
-            className="w-6 h-6 flex items-center justify-center border border-white/10 text-white/30 hover:border-[#C4A35B]/50 hover:text-[#C4A35B] transition-colors disabled:opacity-20 font-mono text-[11px]"
-          >
-            ›
-          </button>
-        </div>
+      {/* Overlay arrows — nostos style */}
+      <button
+        onClick={prev}
+        disabled={activeIdx === 0}
+        aria-label="Previous"
+        className="hidden sm:flex absolute left-0 top-[35%] -translate-y-1/2 -translate-x-3 w-8 h-8 items-center justify-center bg-background/80 border border-white/10 text-white/45 hover:text-[#C4A35B] hover:border-[#C4A35B]/40 transition-colors disabled:opacity-0 font-mono text-base"
+      >
+        ‹
+      </button>
+      <button
+        onClick={next}
+        disabled={activeIdx === products.length - 1}
+        aria-label="Next"
+        className="hidden sm:flex absolute right-0 top-[35%] -translate-y-1/2 translate-x-3 w-8 h-8 items-center justify-center bg-background/80 border border-white/10 text-white/45 hover:text-[#C4A35B] hover:border-[#C4A35B]/40 transition-colors disabled:opacity-0 font-mono text-base"
+      >
+        ›
+      </button>
 
-        {/* Dot indicators */}
-        <div className="flex items-center gap-1.5">
-          {products.map((_, i) => (
-            <button
-              key={i}
-              onClick={() => scrollTo(i)}
-              className={`transition-all duration-200 ${
-                i === activeIdx
-                  ? 'w-3.5 h-1.5 bg-[#C4A35B]'
-                  : 'w-1.5 h-1.5 bg-white/18 hover:bg-white/35'
-              }`}
-            />
-          ))}
-        </div>
+      {/* Dot indicators — centered, nostos style */}
+      <div className="flex items-center justify-center gap-2 mt-5">
+        {products.map((_, i) => (
+          <button
+            key={i}
+            onClick={() => scrollTo(i)}
+            aria-label={`Go to ${i + 1}`}
+            className={`transition-all duration-250 ${
+              i === activeIdx
+                ? 'w-4 h-[5px] bg-[#C4A35B]'
+                : 'w-[5px] h-[5px] bg-white/18 hover:bg-white/40'
+            }`}
+          />
+        ))}
       </div>
     </div>
   );

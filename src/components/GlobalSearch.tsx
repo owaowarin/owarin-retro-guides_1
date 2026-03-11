@@ -1,5 +1,5 @@
 import { useRef, useState, type KeyboardEvent } from 'react';
-import { Search } from 'lucide-react';
+import { Search, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/lib/supabase';
 
@@ -28,7 +28,6 @@ export const GlobalSearch = ({
   placeholder = 'Search…',
   className,
 }: GlobalSearchProps) => {
-  // open ควบคุมด้วย user action เท่านั้น (ไม่ auto-open จาก useEffect)
   const [open, setOpen] = useState(false);
   const [activeIndex, setActiveIndex] = useState(-1);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -40,9 +39,14 @@ export const GlobalSearch = ({
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     onChange(e.target.value);
-    // เปิด dropdown เมื่อ user พิมพ์และมี suggestions
     setOpen(true);
     setActiveIndex(-1);
+  };
+
+  const handleClear = () => {
+    onChange('');
+    closeDropdown();
+    inputRef.current?.focus();
   };
 
   const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
@@ -51,7 +55,6 @@ export const GlobalSearch = ({
       inputRef.current?.blur();
       return;
     }
-
     if (e.key === 'ArrowDown') {
       e.preventDefault();
       if (!open) setOpen(true);
@@ -60,7 +63,6 @@ export const GlobalSearch = ({
       );
       return;
     }
-
     if (e.key === 'ArrowUp') {
       e.preventDefault();
       setActiveIndex((prev) =>
@@ -68,21 +70,17 @@ export const GlobalSearch = ({
       );
       return;
     }
-
     if (e.key === 'Enter') {
       e.preventDefault();
-      // ถ้ามี activeIndex → select suggestion นั้น
       if (open && activeIndex >= 0 && suggestions[activeIndex]) {
         const q = suggestions[activeIndex].label;
         supabase.from('search_queries').insert({ query: q });
         onSelectSuggestion(suggestions[activeIndex]);
       } else {
-        // กด Enter โดยไม่ select → search ด้วยสิ่งที่พิมพ์อยู่ (free-form)
         const q = value.trim();
         if (q) supabase.from('search_queries').insert({ query: q });
         onSearch?.(value);
       }
-      // ปิด dropdown ทันที ไม่ว่าจะเกิดอะไรขึ้น
       closeDropdown();
       inputRef.current?.blur();
       return;
@@ -101,8 +99,8 @@ export const GlobalSearch = ({
   return (
     <div className={cn('relative', className)}>
       <Search
-        size={16}
-        className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
+        size={15}
+        className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-white/25"
       />
       <input
         ref={inputRef}
@@ -113,26 +111,42 @@ export const GlobalSearch = ({
         onKeyDown={handleKeyDown}
         onFocus={() => { if (value.trim()) setOpen(true); }}
         onBlur={() => setTimeout(closeDropdown, 150)}
-        className="w-full bg-secondary border border-border rounded pl-9 pr-4 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary transition-colors"
+        className="w-full bg-secondary border border-border pl-9 pr-9 py-2 text-[13px] text-foreground placeholder:text-white/25 focus:outline-none focus:border-[#C4A35B]/50 transition-colors"
       />
+
+      {/* Clear button — เฉพาะเมื่อมี value */}
+      {value.length > 0 && (
+        <button
+          type="button"
+          onMouseDown={(e) => e.preventDefault()} // ป้องกัน blur ก่อน click
+          onClick={handleClear}
+          className="absolute right-2.5 top-1/2 -translate-y-1/2 p-0.5 text-white/28 hover:text-white/65 transition-colors"
+        >
+          <X size={13} />
+        </button>
+      )}
+
+      {/* Suggestion dropdown */}
       {showDropdown && (
-        <div className="absolute left-0 right-0 mt-2 bg-card border border-border rounded-md shadow-sm max-h-56 overflow-y-auto text-sm z-50">
+        <div className="absolute left-0 right-0 mt-1 bg-card border border-border shadow-lg max-h-64 overflow-y-auto text-sm z-50">
           {suggestions.map((s, idx) => (
             <button
               key={s.id}
               type="button"
               onMouseEnter={() => setActiveIndex(idx)}
-              onMouseDown={(e) => e.preventDefault()} // ป้องกัน blur ก่อน click
+              onMouseDown={(e) => e.preventDefault()}
               onClick={() => handleSelect(s)}
               className={cn(
-                'w-full text-left px-3 py-1.5 text-secondary-foreground hover:bg-secondary',
-                idx === activeIndex && 'bg-secondary'
+                'w-full text-left px-4 py-2.5 transition-colors border-b border-white/4 last:border-0',
+                idx === activeIndex
+                  ? 'bg-white/6 text-white/90'
+                  : 'text-white/60 hover:bg-white/4 hover:text-white/85'
               )}
             >
-              <div className="flex flex-col">
-                <span className="truncate">{s.label}</span>
+              <div className="flex flex-col gap-0.5">
+                <span className="text-[13px] tracking-[0.01em] truncate">{s.label}</span>
                 {s.subtitle && (
-                  <span className="text-[11px] text-muted-foreground truncate">
+                  <span className="font-mono text-[10px] text-white/28 tracking-[0.1em] truncate">
                     {s.subtitle}
                   </span>
                 )}

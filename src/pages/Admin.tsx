@@ -4,6 +4,7 @@ import { useProductStore, Product } from '@/stores/useProductStore';
 import { supabase } from '@/lib/supabase';
 
 import { GlobalSearch, GlobalSearchSuggestion } from '@/components/GlobalSearch';
+import { scoreMatch, sortByRelevance } from '@/lib/searchUtils';
 import AdminOverview from '@/pages/AdminOverview';
 import {
   LogOut, Plus, Trash2, Edit2, Save, X, LayoutGrid, List,
@@ -1075,10 +1076,16 @@ const ProductsTab = () => {
   const suggestions: GlobalSearchSuggestion[] = useMemo(() => {
     const q = search.trim().toLowerCase();
     if (!q) return [];
-    return products
+    const scored = products
       .filter((p) => p.title.toLowerCase().includes(q) || p.id.toLowerCase().includes(q))
-      .slice(0, 10)
-      .map((p) => ({ id: p.id, label: p.title, subtitle: `${p.id} · ${p.platform}` }));
+      .map((p) => ({
+        id: p.id,
+        label: p.title,
+        subtitle: `${p.id} · ${p.platform}`,
+        score: scoreMatch(p.title, q),
+      }))
+      .filter((p) => p.score > 0 || p.id.toLowerCase().includes(q));
+    return sortByRelevance(scored).slice(0, 10);
   }, [products, search]);
 
   /* BULK VIEW — must be after all hooks */

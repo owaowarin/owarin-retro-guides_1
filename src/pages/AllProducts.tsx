@@ -4,6 +4,7 @@ import { SlidersHorizontal, X, ChevronDown } from 'lucide-react';
 import ProductCard from '@/components/ProductCard';
 import { useProductStore } from '@/stores/useProductStore';
 import { GlobalSearch, GlobalSearchSuggestion } from '@/components/GlobalSearch';
+import { scoreMatch, sortByRelevance } from '@/lib/searchUtils';
 
 const ITEMS_PER_PAGE = 50;
 type SortOption = 'newArrivals' | 'priceAsc' | 'priceDesc';
@@ -110,10 +111,16 @@ const AllProducts = () => {
   const suggestions: GlobalSearchSuggestion[] = useMemo(() => {
     const q = search.trim().toLowerCase();
     if (!q) return [];
-    return products
-      .filter((p) => p.title.toLowerCase().includes(q) || p.publisher.toLowerCase().includes(q))
-      .slice(0, 8)
-      .map((p) => ({ id: p.id, label: p.title, subtitle: `${p.platform} · ${p.genre}` }));
+    const scored = products
+      .filter((p) => !p.hidden)
+      .map((p) => ({
+        id: p.id,
+        label: p.title,
+        subtitle: `${p.platform} · ${p.genre}`,
+        score: scoreMatch(p.title, q),
+      }))
+      .filter((p) => p.score > 0);
+    return sortByRelevance(scored).slice(0, 8);
   }, [products, search]);
 
   const pageNumbers = useMemo(() => {

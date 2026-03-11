@@ -35,7 +35,7 @@ const ProductCard = ({ product }: ProductCardProps) => {
     }
   };
 
-  const maxLen = 38;
+  const maxLen = 52;
   const isTruncated = product.title.length > maxLen;
   const shortTitle = isTruncated ? product.title.slice(0, maxLen).trimEnd() : product.title;
   const genreTags = product.genre
@@ -79,10 +79,10 @@ const ProductCard = ({ product }: ProductCardProps) => {
         )}
 
         {/* Title */}
-        <div className="h-[2.7rem] mb-1.5 overflow-hidden">
+        <div className="h-[3.2rem] mb-1.5 overflow-hidden">
           <h3 className="text-[13px] sm:text-[13px] font-light text-white/72 leading-snug group-hover:text-white/92 transition-colors tracking-[0.01em]">
             {shortTitle}
-            {isTruncated && <span className="text-[9px] text-white/22 ml-1">···</span>}
+            {isTruncated && <span className="font-mono text-[9px] text-white/20 ml-1">[—]</span>}
           </h3>
         </div>
 
@@ -91,7 +91,7 @@ const ProductCard = ({ product }: ProductCardProps) => {
           <div className="flex flex-wrap gap-1 mb-1.5">
             {product.platform.split('/').map((s) => s.trim()).filter(Boolean).map((plat) => (
               <span key={plat}
-                className="font-mono text-[9px] tracking-[0.12em] uppercase text-white/30 border border-white/8 px-1.5 py-0.5 leading-none">
+                className="font-mono text-[9px] tracking-[0.12em] uppercase text-white/30 border border-white/8 px-1.5 h-[18px] inline-flex items-center leading-none">
                 {plat}
               </span>
             ))}
@@ -100,10 +100,10 @@ const ProductCard = ({ product }: ProductCardProps) => {
 
         {/* Genre */}
         {genreTags.length > 0 && (
-          <div className="flex flex-wrap gap-1 mb-2 min-h-[1.2rem]">
+          <div className="flex flex-wrap gap-1 mb-2 min-h-[18px]">
             {genreTags.map((g) => (
               <span key={g}
-                className="font-mono text-[9px] tracking-[0.1em] uppercase text-[#C4A35B]/52 border border-[#C4A35B]/18 px-1.5 py-0.5 leading-none">
+                className="font-mono text-[9px] tracking-[0.1em] uppercase text-[#C4A35B]/52 border border-[#C4A35B]/18 px-1.5 h-[18px] inline-flex items-center leading-none">
                 {g}
               </span>
             ))}

@@ -47,7 +47,7 @@ const MobileSidebar = ({ isOpen, onClose, onAdminTab, activeAdminTab }: MobileSi
   return (
     <>
       <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50" onClick={onClose} />
-      <aside className="fixed left-0 top-0 bottom-0 w-72 bg-card border-r border-border z-50 animate-slide-in-left overflow-y-auto flex flex-col">
+      <aside className="fixed right-0 top-0 bottom-0 w-72 bg-card border-l border-border z-50 overflow-y-auto flex flex-col" style={{ animation: 'slideInRight 0.2s ease' }}>
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b border-border flex-shrink-0">
           <span className="font-display text-lg text-primary tracking-widest">
@@ -150,6 +150,12 @@ const MobileSidebar = ({ isOpen, onClose, onAdminTab, activeAdminTab }: MobileSi
           </nav>
         )}
       </aside>
+      <style>{`
+        @keyframes slideInRight {
+          from { transform: translateX(100%); }
+          to { transform: translateX(0); }
+        }
+      `}</style>
     </>
   );
 };
