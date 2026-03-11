@@ -1,12 +1,10 @@
 import { useCartStore } from '@/stores/useCartStore';
-
 import { X, Trash2, ShoppingBag } from 'lucide-react';
 import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 
 const CartSheet = () => {
   const { items, removeItem, getTotal, getShippingCost, clearCart, isCartOpen, closeCart } = useCartStore();
-  
   const navigate = useNavigate();
 
   const handleCheckout = () => {
@@ -15,71 +13,82 @@ const CartSheet = () => {
   };
 
   return createPortal(
-    <div style={{
-      position: 'fixed',
-      inset: 0,
-      zIndex: 9999,
-      display: isCartOpen ? 'block' : 'none'
-    }}>
+    <div style={{ position: 'fixed', inset: 0, zIndex: 9999, display: isCartOpen ? 'block' : 'none' }}>
+
       {/* Overlay */}
       <div
         onClick={closeCart}
-        style={{
-          position: 'absolute',
-          inset: 0,
-          backgroundColor: 'rgba(0, 0, 0, 0.7)',
-          backdropFilter: 'blur(4px)'
-        }}
+        style={{ position: 'absolute', inset: 0, backgroundColor: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(6px)' }}
       />
 
       {/* Drawer */}
-      <div
-        style={{
-          position: 'absolute',
-          top: 0,
-          right: 0,
-          height: '100%',
-          width: '100%',
-          maxWidth: '400px',
-          backgroundColor: '#121212',
-          borderLeft: '1px solid #333',
-          display: 'flex',
-          flexDirection: 'column',
-          boxShadow: '-10px 0 30px rgba(0,0,0,0.5)'
-        }}
-      >
-        <div className="flex items-center justify-between p-6 border-b border-white/10">
-          <h2 className="text-xl font-display uppercase tracking-widest flex items-center gap-2 text-primary font-bold">
-            <ShoppingBag size={20} /> Your Cart
-          </h2>
-          <button onClick={closeCart} className="p-2 text-white/50 hover:text-white">
-            <X size={24} />
+      <div style={{
+        position: 'absolute', top: 0, right: 0,
+        height: '100%', width: '100%', maxWidth: '380px',
+        backgroundColor: '#0e0e11',
+        borderLeft: '1px solid rgba(255,255,255,0.06)',
+        display: 'flex', flexDirection: 'column',
+      }}>
+
+        {/* Header */}
+        <div className="flex items-center justify-between px-6 py-5 border-b border-white/5">
+          <span className="font-mono text-[9px] tracking-[0.3em] uppercase text-[#C4A35B]">
+            Your Bag
+          </span>
+          <button onClick={closeCart} className="text-white/25 hover:text-white/65 transition-colors">
+            <X size={18} />
           </button>
         </div>
 
-        <div className="flex-grow overflow-y-auto p-6 space-y-4">
+        {/* Items */}
+        <div className="flex-grow overflow-y-auto px-6 py-5 space-y-5">
           {items.length === 0 ? (
-            <div className="flex flex-col items-center justify-center h-full text-white/20">
-              <ShoppingBag size={64} className="mb-4 opacity-10" />
-              <p>Your cart is empty</p>
+            <div className="flex flex-col items-center justify-center h-full text-white/15 gap-4">
+              <ShoppingBag size={40} strokeWidth={1} />
+              <p className="font-mono text-[9px] tracking-[0.25em] uppercase">Empty</p>
             </div>
           ) : (
             <>
-              <div className="flex justify-end mb-2">
-                <button onClick={() => clearCart()} className="text-[10px] text-white/40 hover:text-red-500 underline uppercase tracking-widest">
-                  Clear All
+              <div className="flex justify-end">
+                <button
+                  onClick={() => clearCart()}
+                  className="font-mono text-[8px] tracking-[0.2em] uppercase text-white/20 hover:text-white/50 transition-colors"
+                >
+                  Clear all
                 </button>
               </div>
+
               {items.map((item) => (
-                <div key={item.productId} className="flex gap-4 pb-4 border-b border-white/5">
-                  <img src={item.frontImage} className="w-16 h-20 object-cover rounded border border-white/10" alt={item.title} />
-                  <div className="flex flex-col flex-grow justify-center">
-                    <h4 className="text-sm font-medium line-clamp-2 text-white">{item.title}</h4>
-                    <p className="text-[10px] text-white/40 uppercase mb-2 bg-white/5 px-2 py-0.5 rounded w-fit">{item.platform}</p>
-                    <div className="flex items-center justify-between mt-auto">
-                      <p className="text-primary text-sm font-bold">{item.price.toLocaleString()} THB</p>
-                      <button onClick={() => removeItem(item.productId)} className="text-white/20 hover:text-red-500 p-1">
-                        <Trash2 size={16} />
+                <div key={item.productId} className="flex gap-4 pb-5 border-b border-white/5">
+                  {/* Image */}
+                  <div className="w-14 flex-shrink-0 aspect-[3/4] overflow-hidden bg-[#111114]">
+                    <img
+                      src={item.frontImage}
+                      className="w-full h-full object-cover brightness-90"
+                      alt={item.title}
+                    />
+                  </div>
+
+                  {/* Info */}
+                  <div className="flex flex-col flex-grow justify-between min-w-0">
+                    <div>
+                      <h4 className="text-[13px] font-light text-white/75 leading-snug line-clamp-2 mb-1.5">
+                        {item.title}
+                      </h4>
+                      <span className="font-mono text-[8px] tracking-[0.12em] uppercase text-white/28 border border-white/8 px-2 py-0.5 inline-block">
+                        {item.platform}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between mt-2">
+                      <span className="font-mono text-[12px] font-bold text-[#D4AF37] lining-nums">
+                        {item.price.toLocaleString()}
+                        <span className="text-[9px] font-normal text-white/22 ml-1">THB</span>
+                      </span>
+                      <button
+                        onClick={() => removeItem(item.productId)}
+                        className="text-white/18 hover:text-white/55 transition-colors p-1"
+                      >
+                        <Trash2 size={14} />
                       </button>
                     </div>
                   </div>
@@ -89,21 +98,27 @@ const CartSheet = () => {
           )}
         </div>
 
+        {/* Footer */}
         {items.length > 0 && (
-          <div className="p-6 bg-white/[0.02] border-t border-white/10 mt-auto">
-            <div className="space-y-3 mb-6">
-              <div className="flex justify-between text-sm text-white/50">
-                <span>Shipping</span>
-                <span className="text-white font-medium">{getShippingCost().toLocaleString()} THB</span>
+          <div className="px-6 py-5 border-t border-white/5">
+            <div className="space-y-2.5 mb-5">
+              <div className="flex justify-between">
+                <span className="font-mono text-[9px] tracking-[0.18em] uppercase text-white/28">Shipping</span>
+                <span className="font-mono text-[11px] text-white/55 lining-nums">
+                  {getShippingCost().toLocaleString()} THB
+                </span>
               </div>
-              <div className="flex justify-between text-xl font-display text-primary pt-3 border-t border-white/10 font-bold">
-                <span className="tracking-widest">TOTAL</span>
-                <span>{getTotal().toLocaleString()} THB</span>
+              <div className="flex justify-between pt-3 border-t border-white/5">
+                <span className="font-mono text-[9px] tracking-[0.28em] uppercase text-[#C4A35B]">Total</span>
+                <span className="font-mono text-[15px] font-bold text-[#D4AF37] lining-nums">
+                  {getTotal().toLocaleString()} THB
+                </span>
               </div>
             </div>
+
             <button
               onClick={handleCheckout}
-              className="w-full bg-primary text-black py-4 font-bold hover:brightness-110 uppercase tracking-widest rounded shadow-lg shadow-primary/20"
+              className="w-full py-3.5 font-mono text-[9px] tracking-[0.3em] uppercase border border-[#C4A35B] text-[#C4A35B] hover:bg-[#C4A35B] hover:text-[#0c0c0e] transition-all duration-200"
             >
               Checkout
             </button>

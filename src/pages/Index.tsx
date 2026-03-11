@@ -10,12 +10,14 @@ const Index = () => {
   const [search, setSearch] = useState('');
   const [sort, setSort] = useState<'none' | 'priceAsc' | 'priceDesc' | 'yearAsc' | 'yearDesc'>('none');
   const [isMobile, setIsMobile] = useState(false);
+
   useEffect(() => {
     const check = () => setIsMobile(window.innerWidth < 768);
     check();
     window.addEventListener('resize', check);
     return () => window.removeEventListener('resize', check);
   }, []);
+
   const products = useProductStore((s) => s.products);
   const { heroName, storeTagline, storeSubtext, logoUrl, logoSize, heroFontSize, taglineFontSize, subtextFontSize } = useAppStore();
 
@@ -52,7 +54,9 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="fixed top-14 left-0 right-0 z-40 bg-background/95 backdrop-blur-sm border-b border-border px-4 py-2">
+
+      {/* ── Search bar ── */}
+      <div className="fixed top-14 left-0 right-0 z-40 bg-background/95 backdrop-blur-sm border-b border-white/5 px-4 py-2">
         <GlobalSearch
           value={search}
           onChange={setSearch}
@@ -63,9 +67,10 @@ const Index = () => {
         />
       </div>
 
-      <main className="pt-[6rem] px-4 pb-12">
-        {/* Hero */}
-        <section className="flex flex-col items-center justify-center border-b border-border mb-5 py-6 md:py-8">
+      <main className="pt-[6rem] pb-16">
+
+        {/* ── Hero ── */}
+        <section className="flex flex-col items-center justify-center border-b border-white/5 mb-8 py-8 md:py-12 px-4">
           {logoUrl && (
             <div style={{ marginBottom: heroName ? Math.round((heroFontSize ?? 36) * 0.4) : Math.round((taglineFontSize ?? 12) * 1.2) }}>
               <img
@@ -79,7 +84,7 @@ const Index = () => {
               />
             </div>
           )}
-          {heroName ? (
+          {heroName && (
             <h1
               className="font-display tracking-[0.2em] text-primary text-center leading-tight"
               style={{
@@ -87,31 +92,39 @@ const Index = () => {
                 marginBottom: Math.round((heroFontSize ?? 36) * 0.3),
               }}
             >{heroName}</h1>
-          ) : null}
-          {storeTagline ? (
+          )}
+          {storeTagline && (
             <p
-              className="text-muted-foreground tracking-[0.15em] uppercase"
+              className="text-white/30 tracking-[0.22em] uppercase font-mono"
               style={{
                 fontSize: `clamp(${Math.round((taglineFontSize ?? 12) * 0.75)}px, ${((taglineFontSize ?? 12) / 360 * 100).toFixed(1)}vw, ${taglineFontSize ?? 12}px)`,
                 marginBottom: storeSubtext ? Math.round((taglineFontSize ?? 12) * 1.5) : 0,
               }}
             >{storeTagline}</p>
-          ) : null}
-          {storeSubtext && !isMobile ? (
-            <p
-              className="text-muted-foreground max-w-sm text-center"
-              style={{ fontSize: subtextFontSize ?? 11 }}
-            >{storeSubtext}</p>
-          ) : null}
+          )}
+          {storeSubtext && !isMobile && (
+            <p className="text-white/20 max-w-sm text-center font-light" style={{ fontSize: subtextFontSize ?? 11 }}>
+              {storeSubtext}
+            </p>
+          )}
         </section>
 
-        {/* New Arrivals */}
+        {/* ── New Arrivals ── */}
         {newArrivals.length > 0 && (
-          <section className="mb-6">
-            <h2 className="text-[11px] tracking-[0.2em] text-muted-foreground uppercase mb-4">NEW ARRIVAL</h2>
+          <section className="mb-10 px-4">
+            <div className="flex items-center gap-3 mb-5">
+              <span className="font-mono text-[9px] tracking-[0.28em] uppercase text-[#C4A35B]">New Arrival</span>
+              <div className="flex-1 h-px bg-white/5" />
+              <Link
+                to="/all-products"
+                className="font-mono text-[8px] tracking-[0.2em] uppercase text-white/25 hover:text-white/55 transition-colors"
+              >
+                View All →
+              </Link>
+            </div>
             <div className="flex gap-3 overflow-x-auto pb-2 snap-x scrollbar-hide">
               {newArrivals.map((product) => (
-                <div key={product.id} className="w-[44vw] max-w-[160px] flex-shrink-0 snap-start">
+                <div key={product.id} className="w-[42vw] max-w-[155px] flex-shrink-0 snap-start">
                   <ProductCard product={product} />
                 </div>
               ))}
@@ -119,31 +132,37 @@ const Index = () => {
           </section>
         )}
 
-        {/* Sort & All Items */}
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-[11px] tracking-[0.2em] text-muted-foreground uppercase">ALL ITEMS</h2>
-          <select
-            value={sort}
-            onChange={(e) => setSort(e.target.value as typeof sort)}
-            className="bg-secondary border border-border rounded px-3 py-1.5 text-xs text-muted-foreground focus:outline-none focus:border-primary"
-          >
-            <option value="none">Sort: Featured</option>
-            <option value="priceAsc">Price · Low to High</option>
-            <option value="priceDesc">Price · High to Low</option>
-            <option value="yearDesc">Release Year · Newest</option>
-            <option value="yearAsc">Release Year · Oldest</option>
-          </select>
-        </div>
+        {/* ── All Items ── */}
+        <div className="px-4">
+          <div className="flex items-center gap-3 mb-5">
+            <span className="font-mono text-[9px] tracking-[0.28em] uppercase text-[#C4A35B]">All Items</span>
+            <div className="flex-1 h-px bg-white/5" />
+            {/* Sort */}
+            <select
+              value={sort}
+              onChange={(e) => setSort(e.target.value as typeof sort)}
+              className="bg-transparent border border-white/8 px-2.5 py-1 font-mono text-[9px] tracking-[0.15em] uppercase text-white/35 focus:outline-none focus:border-[#C4A35B]/50 focus:text-[#C4A35B] transition-colors appearance-none cursor-pointer"
+            >
+              <option value="none">Featured</option>
+              <option value="priceAsc">Price ↑</option>
+              <option value="priceDesc">Price ↓</option>
+              <option value="yearDesc">Year · New</option>
+              <option value="yearAsc">Year · Old</option>
+            </select>
+          </div>
 
-        <div className="grid grid-cols-2 lg:grid-cols-6 gap-3 md:gap-4">
-          {filtered.map((product) => (
-            <ProductCard key={product.id} product={product} />
-          ))}
-        </div>
+          <div className="grid grid-cols-2 lg:grid-cols-6 gap-3 md:gap-4">
+            {filtered.map((product) => (
+              <ProductCard key={product.id} product={product} />
+            ))}
+          </div>
 
-        {filtered.length === 0 && (
-          <p className="text-center text-muted-foreground mt-12 text-sm">No items found.</p>
-        )}
+          {filtered.length === 0 && (
+            <p className="text-center font-mono text-[9px] tracking-[0.25em] uppercase text-white/20 mt-16">
+              No items found
+            </p>
+          )}
+        </div>
       </main>
     </div>
   );

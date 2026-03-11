@@ -174,7 +174,7 @@ const AllProducts = () => {
         <div className="max-w-screen-2xl mx-auto flex items-center justify-between gap-2">
 
           {/* "6 RESULTS" — own frosted pill */}
-          <p className={`pointer-events-auto text-xs font-light tracking-[0.12em] px-3 py-1.5 rounded-full transition-all duration-300 ${
+          <p className={`pointer-events-auto font-mono text-[9px] tracking-[0.2em] uppercase px-3 py-1.5 transition-all duration-300 ${
             scrolled
               ? 'bg-background/55 backdrop-blur-md text-muted-foreground/70'
               : 'bg-background/80 backdrop-blur-sm text-muted-foreground'
@@ -186,12 +186,12 @@ const AllProducts = () => {
           <div className="flex items-center gap-2 pointer-events-auto">
 
             {/* IN STOCK / SOLD OUT — own frosted pill */}
-            <div className={`inline-flex rounded-full border border-border text-[11px] transition-all duration-300 ${
+            <div className={`inline-flex border border-white/8 text-[11px] transition-all duration-300 ${
               scrolled ? 'bg-background/55 backdrop-blur-md' : 'bg-background/80 backdrop-blur-sm'
             }`}>
               <button
                 onClick={() => setAvail(avail === 'available' ? '' : 'available')}
-                className={`px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-full tracking-[0.12em] transition-colors ${
+                className={`px-2.5 py-1 sm:px-3 sm:py-1.5 font-mono text-[9px] tracking-[0.18em] transition-colors ${
                   avail === 'available' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'
                 }`}
               >
@@ -199,7 +199,7 @@ const AllProducts = () => {
               </button>
               <button
                 onClick={() => setAvail(avail === 'soldout' ? '' : 'soldout')}
-                className={`px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-full tracking-[0.12em] transition-colors ${
+                className={`px-2.5 py-1 sm:px-3 sm:py-1.5 font-mono text-[9px] tracking-[0.18em] transition-colors ${
                   avail === 'soldout' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'
                 }`}
               >
@@ -210,14 +210,14 @@ const AllProducts = () => {
             {/* FILTER — own frosted pill */}
             <button
               onClick={() => setDrawerOpen(true)}
-              className={`flex items-center gap-1.5 px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-full border text-[11px] tracking-[0.12em] transition-all duration-300 ${
+              className={`flex items-center gap-1.5 px-2.5 py-1 sm:px-3 sm:py-1.5 border font-mono text-[9px] tracking-[0.18em] transition-all duration-300 ${
                 selectedPlatform || selectedPublisher ? 'border-primary text-primary' : 'border-border text-muted-foreground hover:text-primary hover:border-primary'
               } ${scrolled ? 'bg-background/55 backdrop-blur-md' : 'bg-background/80 backdrop-blur-sm'}`}
             >
               <SlidersHorizontal size={12} />
               <span className="hidden sm:inline">FILTER</span>
               {(selectedPlatform || selectedPublisher) && (
-                <span className="w-4 h-4 rounded-full bg-primary text-primary-foreground text-[9px] flex items-center justify-center">
+                <span className="w-4 h-4 bg-[#C4A35B] text-[#0c0c0e] text-[9px] flex items-center justify-center font-mono font-bold">
                   {[selectedPlatform, selectedPublisher].filter(Boolean).length}
                 </span>
               )}
@@ -231,19 +231,19 @@ const AllProducts = () => {
         {hasFilters && (
           <div className="flex flex-wrap items-center gap-2 mb-4">
             {selectedPlatform && (
-              <span className="inline-flex items-center gap-1 border border-primary/40 text-primary text-[11px] rounded-full px-2.5 py-0.5">
+              <span className="font-mono inline-flex items-center gap-1.5 border border-[#C4A35B]/40 text-[#C4A35B] text-[9px] tracking-[0.12em] uppercase px-2.5 py-1">
                 {selectedPlatform}
                 <button onClick={() => setFilter('platform', '')}><X size={10} /></button>
               </span>
             )}
             {selectedGenre && (
-              <span className="inline-flex items-center gap-1 border border-primary/40 text-primary text-[11px] rounded-full px-2.5 py-0.5">
+              <span className="font-mono inline-flex items-center gap-1.5 border border-[#C4A35B]/40 text-[#C4A35B] text-[9px] tracking-[0.12em] uppercase px-2.5 py-1">
                 {selectedGenre}
                 <button onClick={() => setFilter('genre', '')}><X size={10} /></button>
               </span>
             )}
             {selectedPublisher && (
-              <span className="inline-flex items-center gap-1 border border-primary/40 text-primary text-[11px] rounded-full px-2.5 py-0.5">
+              <span className="font-mono inline-flex items-center gap-1.5 border border-[#C4A35B]/40 text-[#C4A35B] text-[9px] tracking-[0.12em] uppercase px-2.5 py-1">
                 {selectedPublisher}
                 <button onClick={() => setFilter('publisher', '')}><X size={10} /></button>
               </span>
@@ -257,27 +257,9 @@ const AllProducts = () => {
         {/* ── Product Grid ── */}
         {paginated.length > 0 ? (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 md:gap-4">
-            {paginated.map((product) => {
-              const isSoldOut = product.statusTag === 'soldOut';
-              // Ensure title has 「」brackets
-              const displayProduct = product;
-              return (
-                <div key={product.id} className="relative">
-                  <ProductCard product={displayProduct} />
-                  <div className="absolute top-2 left-2">
-                    {isSoldOut ? (
-                      <span className="bg-zinc-800/90 text-zinc-400 text-[9px] font-medium tracking-wider px-1.5 py-0.5 rounded">
-                        SOLD OUT
-                      </span>
-                    ) : (
-                      <span className="bg-emerald-900/80 text-emerald-400 text-[9px] font-medium tracking-wider px-1.5 py-0.5 rounded">
-                        AVAILABLE
-                      </span>
-                    )}
-                  </div>
-                </div>
-              );
-            })}
+            {paginated.map((product) => (
+              <ProductCard key={product.id} product={product} />
+            ))}
           </div>
         ) : (
           <div className="text-center mt-24">
@@ -330,7 +312,7 @@ const AllProducts = () => {
                   {n}
                   {/* Active indicator: thin underline dot */}
                   {page === n && (
-                    <span className="absolute bottom-0.5 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-primary" />
+                    <span className="absolute bottom-0.5 left-1/2 -translate-x-1/2 w-1 h-1 bg-primary" />
                   )}
                 </button>
               )
@@ -402,7 +384,7 @@ const AllProducts = () => {
                       <button
                         key={val}
                         onClick={() => setSort(val)}
-                        className={`w-full text-left px-2 py-2 text-[11px] tracking-[0.15em] rounded transition-colors ${
+                        className={`w-full text-left px-2 py-2 text-[11px] tracking-[0.15em] transition-colors ${
                           sort === val ? 'text-primary' : 'text-muted-foreground hover:text-foreground'
                         }`}
                       >
@@ -423,7 +405,7 @@ const AllProducts = () => {
                   >
                     <span className="flex items-center gap-2">
                       PLATFORM
-                      {selectedPlatform && <span className="w-1.5 h-1.5 rounded-full bg-primary inline-block" />}
+                      {selectedPlatform && <span className="w-1.5 h-1.5 bg-[#C4A35B] inline-block" />}
                     </span>
                     <ChevronDown size={14} className={`transition-transform duration-200 ${expandedSections.platform ? 'rotate-180' : ''}`} />
                   </button>
@@ -433,7 +415,7 @@ const AllProducts = () => {
                         <button
                           key={p}
                           onClick={() => setFilter('platform', selectedPlatform === p ? '' : p)}
-                          className={`w-full text-left px-2 py-2 text-[11px] tracking-[0.15em] rounded transition-colors ${
+                          className={`w-full text-left px-2 py-2 text-[11px] tracking-[0.15em] transition-colors ${
                             selectedPlatform === p ? 'text-primary' : 'text-muted-foreground hover:text-foreground'
                           }`}
                         >
@@ -455,7 +437,7 @@ const AllProducts = () => {
                   >
                     <span className="flex items-center gap-2">
                       PUBLISHER
-                      {selectedPublisher && <span className="w-1.5 h-1.5 rounded-full bg-primary inline-block" />}
+                      {selectedPublisher && <span className="w-1.5 h-1.5 bg-[#C4A35B] inline-block" />}
                     </span>
                     <ChevronDown size={14} className={`transition-transform duration-200 ${expandedSections.publisher ? 'rotate-180' : ''}`} />
                   </button>
@@ -465,7 +447,7 @@ const AllProducts = () => {
                         <button
                           key={pub}
                           onClick={() => setFilter('publisher', selectedPublisher === pub ? '' : pub)}
-                          className={`w-full text-left px-2 py-2 text-[11px] tracking-[0.15em] rounded transition-colors ${
+                          className={`w-full text-left px-2 py-2 text-[11px] tracking-[0.15em] transition-colors ${
                             selectedPublisher === pub ? 'text-primary' : 'text-muted-foreground hover:text-foreground'
                           }`}
                         >
@@ -487,7 +469,7 @@ const AllProducts = () => {
                   >
                     <span className="flex items-center gap-2">
                       GENRE
-                      {selectedGenre && <span className="w-1.5 h-1.5 rounded-full bg-primary inline-block" />}
+                      {selectedGenre && <span className="w-1.5 h-1.5 bg-[#C4A35B] inline-block" />}
                     </span>
                     <ChevronDown size={14} className={`transition-transform duration-200 ${expandedSections.genre ? 'rotate-180' : ''}`} />
                   </button>
@@ -497,7 +479,7 @@ const AllProducts = () => {
                         <button
                           key={g}
                           onClick={() => setFilter('genre', selectedGenre === g ? '' : g)}
-                          className={`w-full text-left px-2 py-2 text-[11px] tracking-[0.15em] rounded transition-colors ${
+                          className={`w-full text-left px-2 py-2 text-[11px] tracking-[0.15em] transition-colors ${
                             selectedGenre === g ? 'text-primary' : 'text-muted-foreground hover:text-foreground'
                           }`}
                         >

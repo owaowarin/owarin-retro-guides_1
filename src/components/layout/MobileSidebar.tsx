@@ -67,14 +67,14 @@ const MobileSidebar = ({ isOpen, onClose, onAdminTab, activeAdminTab }: MobileSi
           /* ── Admin Navigation ── */
           <nav className="p-4 space-y-1 flex-1">
             <Link to="/" onClick={onClose}
-              className="flex items-center gap-3 px-3 py-2.5 text-sm tracking-wider text-muted-foreground hover:text-primary hover:bg-secondary rounded transition-colors mb-4">
+              className="flex items-center gap-3 px-3 py-2.5 text-sm tracking-wider text-muted-foreground hover:text-primary hover:bg-secondary transition-colors mb-4">
               <Home size={16} /> BACK TO STORE
             </Link>
             <div className="border-t border-border pt-4 space-y-1">
               {adminMenu.map(({ label, icon: Icon, tab, sub }) => (
                 <div key={label}>
                   <button onClick={() => { onAdminTab?.(tab); onClose(); }}
-                    className={`w-full flex items-center gap-3 px-3 py-2.5 text-sm tracking-wider rounded transition-colors ${
+                    className={`w-full flex items-center gap-3 px-3 py-2.5 text-sm tracking-wider transition-colors ${
                       activeAdminTab === tab ? 'text-primary bg-secondary' : 'text-secondary-foreground hover:text-primary hover:bg-secondary'
                     }`}>
                     <Icon size={16} />{label}
@@ -83,7 +83,7 @@ const MobileSidebar = ({ isOpen, onClose, onAdminTab, activeAdminTab }: MobileSi
                     <div className="ml-8 mt-0.5 space-y-0.5">
                       {sub.map((s) => (
                         <button key={s} onClick={() => { onAdminTab?.(tab); onClose(); }}
-                          className="w-full text-left px-3 py-1.5 text-[11px] tracking-[0.1em] text-muted-foreground hover:text-primary rounded transition-colors">
+                          className="w-full text-left px-3 py-1.5 text-[11px] tracking-[0.1em] text-muted-foreground hover:text-primary transition-colors">
                           {s}
                         </button>
                       ))}
@@ -105,7 +105,7 @@ const MobileSidebar = ({ isOpen, onClose, onAdminTab, activeAdminTab }: MobileSi
                 { to: '/admin', label: 'ADMIN', icon: Shield },
               ].map(({ to, label, icon: Icon }) => (
                 <Link key={to} to={to} onClick={onClose}
-                  className="flex items-center gap-3 px-3 py-2.5 text-sm tracking-wider text-secondary-foreground hover:text-primary hover:bg-secondary rounded transition-colors">
+                  className="flex items-center gap-3 px-3 py-2.5 text-sm tracking-wider text-secondary-foreground hover:text-primary hover:bg-secondary transition-colors">
                   <Icon size={16} />{label}
                 </Link>
               ))}
@@ -123,7 +123,7 @@ const MobileSidebar = ({ isOpen, onClose, onAdminTab, activeAdminTab }: MobileSi
                   <div className="px-3 pb-3 space-y-0.5">
                     {platforms.map((p) => (
                       <button key={p} onClick={() => goTo(`/all-products?platform=${encodeURIComponent(p)}`)}
-                        className="w-full text-left px-3 py-2 text-sm text-secondary-foreground hover:text-primary hover:bg-secondary rounded transition-colors">
+                        className="w-full text-left px-3 py-2 text-sm text-secondary-foreground hover:text-primary hover:bg-secondary transition-colors">
                         {p}
                       </button>
                     ))}
@@ -144,7 +144,7 @@ const MobileSidebar = ({ isOpen, onClose, onAdminTab, activeAdminTab }: MobileSi
                   <div className="px-3 pb-3 space-y-0.5">
                     {publishers.map((pub) => (
                       <button key={pub} onClick={() => goTo(`/all-products?publisher=${encodeURIComponent(pub)}`)}
-                        className="w-full text-left px-3 py-2 text-sm text-secondary-foreground hover:text-primary hover:bg-secondary rounded transition-colors">
+                        className="w-full text-left px-3 py-2 text-sm text-secondary-foreground hover:text-primary hover:bg-secondary transition-colors">
                         {pub}
                       </button>
                     ))}
@@ -165,7 +165,7 @@ const MobileSidebar = ({ isOpen, onClose, onAdminTab, activeAdminTab }: MobileSi
                   <div className="px-3 pb-3 space-y-0.5">
                     {genres.map((g) => (
                       <button key={g} onClick={() => goTo(`/all-products?genre=${encodeURIComponent(g)}`)}
-                        className="w-full text-left px-3 py-2 text-sm text-secondary-foreground hover:text-primary hover:bg-secondary rounded transition-colors">
+                        className="w-full text-left px-3 py-2 text-sm text-secondary-foreground hover:text-primary hover:bg-secondary transition-colors">
                         {g}
                       </button>
                     ))}
