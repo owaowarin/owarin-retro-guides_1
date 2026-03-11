@@ -1221,15 +1221,16 @@ const ProductsTab = () => {
 
   return (
     <div className="space-y-3">
-      {/* ── Stats ── */}
+      {/* Stats */}
       <div className="grid grid-cols-3 gap-3 mb-1">
         {([
-          { label: 'AVAILABLE', value: availableCount, active: stockFilter === 'available', color: 'text-green-600' },
-          { label: 'SOLD OUT',  value: soldOutCount,   active: stockFilter === 'soldout',   color: 'text-muted-foreground' },
-          { label: 'HIDDEN',    value: hiddenCount,    active: stockFilter === 'hidden',    color: 'text-muted-foreground/50' },
-        ] as { label: string; value: number; active: boolean; color: string }[]).map(({ label, value, active, color }) => (
-          <div key={label} className={`border px-4 py-3 cursor-pointer transition-colors ${active ? 'bg-card border-primary/40' : 'bg-card border-border hover:border-border/80'}`}
-            onClick={() => setStockFilter(label === 'AVAILABLE' ? 'available' : label === 'SOLD OUT' ? 'soldout' : 'hidden')}>
+          { label: 'AVAILABLE', value: availableCount, filter: 'available' as const, color: 'text-green-600' },
+          { label: 'SOLD OUT',  value: soldOutCount,   filter: 'soldout'   as const, color: 'text-muted-foreground' },
+          { label: 'HIDDEN',    value: hiddenCount,    filter: 'hidden'    as const, color: 'text-muted-foreground/50' },
+        ]).map(({ label, value, filter, color }) => (
+          <div key={label}
+            className={`border px-4 py-3 cursor-pointer transition-colors ${stockFilter === filter ? 'bg-card border-primary/40' : 'bg-card border-border hover:border-border/80'}`}
+            onClick={() => setStockFilter(filter)}>
             <p className="text-[9px] tracking-[0.2em] text-muted-foreground uppercase mb-1">{label}</p>
             <p className={`text-2xl font-light ${color}`}>{value}</p>
           </div>
@@ -1391,22 +1392,13 @@ const ProductsTab = () => {
           )}
           <div className="flex-1 min-w-0">
             <p className="text-sm text-foreground truncate">{p.title}</p>
-            <p className="text-xs text-muted-foreground">{p.id} · {p.price.toLocaleString()} THB</p>
+            <p className="text-xs text-muted-foreground">{p.id} · {p.price.toLocaleString()} THB{p.hidden ? <span className="ml-2 text-[10px] text-white/35 border border-white/12 px-1.5 py-0.5 tracking-[0.1em]">HIDDEN</span> : null}</p>
           </div>
           {!selectMode && (
             <>
-              {/* Quick status toggle — optimistic, instant response */}
-              <button
-                onClick={() => updateProduct(p.id, { statusTag: p.statusTag === 'soldOut' ? 'none' : 'soldOut' })}
-                className={`flex items-center gap-1.5 px-2.5 py-1 border text-[10px] tracking-[0.1em] transition-colors flex-shrink-0 whitespace-nowrap ${
-                  p.statusTag === 'soldOut'
-                    ? 'border-border text-muted-foreground/60'
-                    : 'border-green-900/30 text-green-600 bg-green-950/20'
-                }`}
-              >
-                <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${
-                  p.statusTag === 'soldOut' ? 'border border-muted-foreground/40' : 'bg-green-600'
-                }`} />
+              <button onClick={() => updateProduct(p.id, { statusTag: p.statusTag === 'soldOut' ? 'none' : 'soldOut' })}
+                className={`flex items-center gap-1.5 px-2.5 py-1 border text-[10px] tracking-[0.1em] transition-colors flex-shrink-0 whitespace-nowrap ${p.statusTag === 'soldOut' ? 'border-border text-muted-foreground/60' : 'border-green-900/30 text-green-600 bg-green-950/20'}`}>
+                <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${p.statusTag === 'soldOut' ? 'border border-muted-foreground/40' : 'bg-green-600'}`} />
                 {p.statusTag === 'soldOut' ? 'SOLD OUT' : 'AVAILABLE'}
               </button>
               <button onClick={() => { updateProduct(p.id, { hidden: !p.hidden }); toast.success(p.hidden ? 'Product visible' : 'Product hidden'); }} className={`transition-colors ${p.hidden ? 'text-primary' : 'text-muted-foreground hover:text-primary'}`} title={p.hidden ? 'Show product' : 'Hide product'}>{p.hidden ? <Eye size={16} /> : <EyeOff size={16} />}</button>
@@ -1524,6 +1516,7 @@ const StoreInfoSubTab = () => {
       heroFontSize: heroFS,
       taglineFontSize: taglineFS,
       subtextFontSize: subtextFS,
+      discountRate: 0,
     });
     toast.success('Store info updated');
   };
@@ -1620,8 +1613,8 @@ const StoreInfoSubTab = () => {
           <input type="range" min={8} max={20} value={subtextFS} onChange={(e) => setSubtextFS(Number(e.target.value))} className="w-full accent-primary" />
           <div className="flex justify-between text-[10px] text-muted-foreground mt-0.5"><span>8px</span><span>20px</span></div>
         </div>
-          <div className="flex justify-between text-[10px] text-muted-foreground mt-0.5"><span>0% (off)</span><span>70%</span></div>
-        </div>
+
+
       </div>
 
       {/* Preview */}
