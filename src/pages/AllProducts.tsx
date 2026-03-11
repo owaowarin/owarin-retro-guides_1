@@ -51,32 +51,52 @@ const AllProducts = () => {
     return Array.from(set).filter(Boolean).sort();
   }, [products]);
 
-  const filtered = useMemo(() => {
-    const q = search.trim().toLowerCase();
-    let f = products.filter((p) => {
+  /* ── Step 1: Filter by platform/genre/publisher (memo separately for perf) ── */
+  const baseFiltered = useMemo(() => {
+    return products.filter((p) => {
       if (p.hidden) return false;
-      if (q) {
-        const year = p.releaseDate ? new Date(p.releaseDate).getFullYear().toString() : '';
-        if (
-          !p.title.toLowerCase().includes(q) &&
-          !p.publisher.toLowerCase().includes(q) &&
-          !p.platform.toLowerCase().includes(q) &&
-          !p.genre.toLowerCase().includes(q) &&
-          year !== q
-        ) return false;
-      }
       if (selectedPlatform && !p.platform.split(/[,/]\s*/).map((s) => s.trim()).includes(selectedPlatform)) return false;
       if (selectedGenre && !p.genre.split(/[,/]\s*/).map((s) => s.trim()).includes(selectedGenre)) return false;
       if (selectedPublisher && !p.publisher.split(/[,/]\s*/).map((s) => s.trim()).includes(selectedPublisher)) return false;
       return true;
     });
+  }, [products, selectedPlatform, selectedGenre, selectedPublisher]);
 
-    const sorted = [...f];
+  /* ── Step 2: Apply search + sort ── */
+  const filtered = useMemo(() => {
+    const q = search.trim().toLowerCase();
+
+    // Apply search filter
+    const searched = q
+      ? baseFiltered.filter((p) => {
+          const year = p.releaseDate ? new Date(p.releaseDate).getFullYear().toString() : '';
+          return (
+            p.title.toLowerCase().includes(q) ||
+            p.publisher.toLowerCase().includes(q) ||
+            p.platform.toLowerCase().includes(q) ||
+            p.genre.toLowerCase().includes(q) ||
+            year === q
+          );
+        })
+      : baseFiltered;
+
+    // When query exists → sort by relevance (title match quality)
+    if (q) {
+      return [...searched].sort((a, b) => {
+        const sa = scoreMatch(a.title, q);
+        const sb = scoreMatch(b.title, q);
+        if (sb !== sa) return sb - sa;          // higher score first
+        return a.title.localeCompare(b.title);   // A→Z within same score
+      });
+    }
+
+    // No query → sort by user-selected option
+    const sorted = [...searched];
     if (sort === 'priceAsc') sorted.sort((a, b) => a.price - b.price);
     else if (sort === 'priceDesc') sorted.sort((a, b) => b.price - a.price);
-    else sorted.reverse();
+    else sorted.reverse(); // newArrivals
     return sorted;
-  }, [products, search, selectedPlatform, selectedGenre, selectedPublisher, sort]);
+  }, [baseFiltered, search, sort]);
 
   const totalPages = Math.ceil(filtered.length / ITEMS_PER_PAGE);
   const paginated = filtered.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE);
@@ -212,8 +232,8 @@ const AllProducts = () => {
         {/* Product Grid */}
         {paginated.length > 0 ? (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 md:gap-4">
-            {paginated.map((product) => (
-              <ProductCard key={product.id} product={product} />
+            {paginated.map((product, i) => (
+              <ProductCard key={product.id} product={product} priority={i < 6} />
             ))}
           </div>
         ) : (

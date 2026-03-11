@@ -1,90 +1,134 @@
-import { useState, useMemo, useRef, useEffect } from 'react';
+import { useState, useMemo, useRef, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import ProductCard from '@/components/ProductCard';
 import { useProductStore } from '@/stores/useProductStore';
 
-/* ── Nostos-style carousel: large cards, overlay arrows, centered dots ── */
-const NewArrivalsCarousel = ({ products }: { products: ReturnType<typeof useProductStore.getState>['products'] }) => {
-  const scrollRef = useRef<HTMLDivElement>(null);
-  const [activeIdx, setActiveIdx] = useState(0);
+/* ─────────────────────────────────────────────────────────────
+   OWARIN New Arrivals Carousel
+   CSS transform-based — zero scrollbar, nostos DNA
+───────────────────────────────────────────────────────────────*/
+type CarouselProduct = ReturnType<typeof useProductStore.getState>['products'][number];
 
-  /* Sync dot with scroll */
+const NewArrivalsCarousel = ({ products }: { products: CarouselProduct[] }) => {
+  const [idx, setIdx] = useState(0);
+  const [dragging, setDragging] = useState(false);
+  const [dragStart, setDragStart] = useState(0);
+  const trackRef = useRef<HTMLDivElement>(null);
+  const total = products.length;
+
+  const clamp = (n: number) => Math.max(0, Math.min(total - 1, n));
+  const go = useCallback((n: number) => setIdx(clamp(n)), [total]);
+
+  /* ── Keyboard navigation ── */
   useEffect(() => {
-    const el = scrollRef.current;
-    if (!el) return;
-    const handler = () => {
-      const first = el.firstElementChild as HTMLElement | null;
-      if (!first) return;
-      const cardWidth = first.offsetWidth;
-      const gap = 16; // gap-4
-      const idx = Math.round(el.scrollLeft / (cardWidth + gap));
-      setActiveIdx(Math.min(idx, products.length - 1));
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === 'ArrowLeft') go(idx - 1);
+      if (e.key === 'ArrowRight') go(idx + 1);
     };
-    el.addEventListener('scroll', handler, { passive: true });
-    return () => el.removeEventListener('scroll', handler);
-  }, [products.length]);
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [idx, go]);
 
-  const scrollTo = (idx: number) => {
-    const el = scrollRef.current;
-    if (!el) return;
-    const first = el.firstElementChild as HTMLElement | null;
-    if (!first) return;
-    const cardWidth = first.offsetWidth;
-    const gap = 16;
-    el.scrollTo({ left: idx * (cardWidth + gap), behavior: 'smooth' });
-    setActiveIdx(idx);
+  /* ── Touch / mouse swipe ── */
+  const onPointerDown = (e: React.PointerEvent) => {
+    setDragging(true);
+    setDragStart(e.clientX);
+    (e.target as HTMLElement).setPointerCapture(e.pointerId);
+  };
+  const onPointerUp = (e: React.PointerEvent) => {
+    if (!dragging) return;
+    setDragging(false);
+    const delta = dragStart - e.clientX;
+    if (Math.abs(delta) > 40) go(idx + (delta > 0 ? 1 : -1));
   };
 
-  const prev = () => scrollTo(Math.max(0, activeIdx - 1));
-  const next = () => scrollTo(Math.min(products.length - 1, activeIdx + 1));
+  if (total === 0) return null;
 
   return (
-    <div className="relative">
-      {/* Cards strip */}
-      <div
-        ref={scrollRef}
-        className="flex gap-4 overflow-x-auto pb-1 snap-x snap-mandatory scrollbar-hide"
-      >
-        {products.map((product) => (
-          <div
-            key={product.id}
-            className="w-[75vw] sm:w-[42vw] md:w-[30vw] lg:w-[22vw] xl:w-[18vw] max-w-[320px] flex-shrink-0 snap-start"
-          >
-            <ProductCard product={product} />
-          </div>
-        ))}
+    <div className="select-none">
+      {/* ── Viewport — clips overflow, no scrollbar at all ── */}
+      <div className="relative overflow-hidden">
+
+        {/* ── Track — slides via CSS transform ── */}
+        <div
+          ref={trackRef}
+          className="flex"
+          style={{
+            transform: `translateX(calc(-${idx} * (var(--card-w) + var(--card-gap))))`,
+            transition: dragging ? 'none' : 'transform 0.38s cubic-bezier(0.4,0,0.2,1)',
+            /* CSS custom props for card sizing */
+            ['--card-w' as string]: 'min(75vw, 280px)',
+            ['--card-gap' as string]: '16px',
+            gap: 'var(--card-gap)',
+          }}
+          onPointerDown={onPointerDown}
+          onPointerUp={onPointerUp}
+          onPointerCancel={() => setDragging(false)}
+        >
+          {products.map((product, i) => (
+            <div
+              key={product.id}
+              style={{ width: 'var(--card-w)', minWidth: 'var(--card-w)' }}
+              className="sm:w-[42vw] sm:min-w-[unset] md:w-[28vw] lg:w-[21vw] xl:w-[17vw]"
+            >
+              {/* Only render visible ±1 cards for perf */}
+              {Math.abs(i - idx) <= 2 ? (
+                <ProductCard product={product} priority={i === 0} />
+              ) : (
+                <div style={{ aspectRatio: '1', background: '#111114' }} />
+              )}
+            </div>
+          ))}
+        </div>
+
+        {/* ── Overlay arrows — OWARIN sharp style ── */}
+        <button
+          onClick={() => go(idx - 1)}
+          disabled={idx === 0}
+          aria-label="Previous"
+          className="hidden sm:flex absolute left-2 top-[38%] -translate-y-1/2 z-10
+                     w-8 h-8 items-center justify-center
+                     border border-white/12 bg-[#0c0c0e]/75 backdrop-blur-[2px]
+                     text-white/40 hover:text-[#C4A35B] hover:border-[#C4A35B]/45
+                     transition-all duration-200
+                     disabled:opacity-0 disabled:pointer-events-none
+                     font-mono text-lg leading-none"
+        >
+          ‹
+        </button>
+        <button
+          onClick={() => go(idx + 1)}
+          disabled={idx === total - 1}
+          aria-label="Next"
+          className="hidden sm:flex absolute right-2 top-[38%] -translate-y-1/2 z-10
+                     w-8 h-8 items-center justify-center
+                     border border-white/12 bg-[#0c0c0e]/75 backdrop-blur-[2px]
+                     text-white/40 hover:text-[#C4A35B] hover:border-[#C4A35B]/45
+                     transition-all duration-200
+                     disabled:opacity-0 disabled:pointer-events-none
+                     font-mono text-lg leading-none"
+        >
+          ›
+        </button>
+
+        {/* ── Peek gradient — right edge ── */}
+        <div className="absolute right-0 top-0 bottom-0 w-8 pointer-events-none
+                        bg-gradient-to-l from-background/60 to-transparent sm:hidden" />
       </div>
 
-      {/* Overlay arrows — nostos style */}
-      <button
-        onClick={prev}
-        disabled={activeIdx === 0}
-        aria-label="Previous"
-        className="hidden sm:flex absolute left-0 top-[35%] -translate-y-1/2 -translate-x-3 w-8 h-8 items-center justify-center bg-background/80 border border-white/10 text-white/45 hover:text-[#C4A35B] hover:border-[#C4A35B]/40 transition-colors disabled:opacity-0 font-mono text-base"
-      >
-        ‹
-      </button>
-      <button
-        onClick={next}
-        disabled={activeIdx === products.length - 1}
-        aria-label="Next"
-        className="hidden sm:flex absolute right-0 top-[35%] -translate-y-1/2 translate-x-3 w-8 h-8 items-center justify-center bg-background/80 border border-white/10 text-white/45 hover:text-[#C4A35B] hover:border-[#C4A35B]/40 transition-colors disabled:opacity-0 font-mono text-base"
-      >
-        ›
-      </button>
-
-      {/* Dot indicators — centered, nostos style */}
-      <div className="flex items-center justify-center gap-2 mt-5">
+      {/* ── Dot indicators — centered, nostos DNA ── */}
+      <div className="flex items-center justify-center gap-[7px] mt-4">
         {products.map((_, i) => (
           <button
             key={i}
-            onClick={() => scrollTo(i)}
-            aria-label={`Go to ${i + 1}`}
-            className={`transition-all duration-250 ${
-              i === activeIdx
-                ? 'w-4 h-[5px] bg-[#C4A35B]'
-                : 'w-[5px] h-[5px] bg-white/18 hover:bg-white/40'
-            }`}
+            onClick={() => go(i)}
+            aria-label={`Slide ${i + 1}`}
+            className="transition-all duration-300 focus:outline-none"
+            style={{
+              width: i === idx ? 16 : 5,
+              height: 5,
+              background: i === idx ? '#C4A35B' : 'rgba(255,255,255,0.18)',
+            }}
           />
         ))}
       </div>
@@ -92,29 +136,32 @@ const NewArrivalsCarousel = ({ products }: { products: ReturnType<typeof useProd
   );
 };
 
-/* ── Main Index page ── */
+/* ─────────────────────────────────────────────────────────────
+   INDEX PAGE
+───────────────────────────────────────────────────────────────*/
 const Index = () => {
   const [sort, setSort] = useState<'none' | 'priceAsc' | 'priceDesc' | 'yearAsc' | 'yearDesc'>('none');
   const products = useProductStore((s) => s.products);
 
+  /* Last 10 non-hidden, most recent first */
   const newArrivals = useMemo(
     () => products.filter((p) => !p.hidden).slice(-10).reverse(),
     [products]
   );
 
+  /* All items sorted */
   const allSorted = useMemo(() => {
     const visible = products.filter((p) => !p.hidden);
-    const sorted = [...visible];
-    sorted.sort((a, b) => {
+    if (sort === 'none') return visible;
+    return [...visible].sort((a, b) => {
       if (sort === 'priceAsc') return a.price - b.price;
       if (sort === 'priceDesc') return b.price - a.price;
-      const yearA = a.releaseDate ? new Date(a.releaseDate).getFullYear() : 0;
-      const yearB = b.releaseDate ? new Date(b.releaseDate).getFullYear() : 0;
-      if (sort === 'yearAsc') return yearA - yearB;
-      if (sort === 'yearDesc') return yearB - yearA;
+      const ya = a.releaseDate ? new Date(a.releaseDate).getFullYear() : 0;
+      const yb = b.releaseDate ? new Date(b.releaseDate).getFullYear() : 0;
+      if (sort === 'yearAsc') return ya - yb;
+      if (sort === 'yearDesc') return yb - ya;
       return 0;
     });
-    return sorted;
   }, [products, sort]);
 
   return (
@@ -160,8 +207,8 @@ const Index = () => {
         </div>
 
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 md:gap-4">
-          {allSorted.map((product) => (
-            <ProductCard key={product.id} product={product} />
+          {allSorted.map((product, i) => (
+            <ProductCard key={product.id} product={product} priority={i < 6} />
           ))}
         </div>
 
