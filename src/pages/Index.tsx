@@ -137,6 +137,25 @@ const NewArrivalsCarousel = ({ products }: { products: CarouselProduct[] }) => {
 };
 
 /* ─────────────────────────────────────────────────────────────
+   SECTION HEADER — reusable, nostos DNA
+───────────────────────────────────────────────────────────────*/
+const SectionHeader = ({
+  label,
+  right,
+}: {
+  label: string;
+  right?: React.ReactNode;
+}) => (
+  <div className="flex items-center gap-3 mb-5">
+    <span className="font-mono text-[10px] tracking-[0.28em] uppercase text-[#C4A35B]">
+      {label}
+    </span>
+    <div className="flex-1 h-px bg-white/5" />
+    {right}
+  </div>
+);
+
+/* ─────────────────────────────────────────────────────────────
    INDEX PAGE
 ───────────────────────────────────────────────────────────────*/
 const Index = () => {
@@ -170,41 +189,39 @@ const Index = () => {
       {/* ── New Arrivals ── */}
       {newArrivals.length > 0 && (
         <section className="pt-6 mb-12 px-4">
-          <div className="flex items-center gap-3 mb-5">
-            <span className="font-mono text-[10px] tracking-[0.28em] uppercase text-[#C4A35B]">
-              New Arrival
-            </span>
-            <div className="flex-1 h-px bg-white/5" />
-            <Link
-              to="/all-products"
-              className="font-mono text-[9px] tracking-[0.2em] uppercase text-white/28 hover:text-white/55 transition-colors"
-            >
-              View All →
-            </Link>
-          </div>
+          <SectionHeader
+            label="New Arrival"
+            right={
+              <Link
+                to="/all-products"
+                className="font-mono text-[9px] tracking-[0.2em] uppercase text-white/28 hover:text-white/55 transition-colors"
+              >
+                View All →
+              </Link>
+            }
+          />
           <NewArrivalsCarousel products={newArrivals} />
         </section>
       )}
 
       {/* ── All Items ── */}
       <div className="px-4">
-        <div className="flex items-center gap-3 mb-5">
-          <span className="font-mono text-[10px] tracking-[0.28em] uppercase text-[#C4A35B]">
-            All Items
-          </span>
-          <div className="flex-1 h-px bg-white/5" />
-          <select
-            value={sort}
-            onChange={(e) => setSort(e.target.value as typeof sort)}
-            className="bg-transparent border border-white/8 px-2.5 py-1 font-mono text-[10px] tracking-[0.15em] uppercase text-white/35 focus:outline-none focus:border-[#C4A35B]/50 focus:text-[#C4A35B] transition-colors appearance-none cursor-pointer"
-          >
-            <option value="none">Featured</option>
-            <option value="priceAsc">Price ↑</option>
-            <option value="priceDesc">Price ↓</option>
-            <option value="yearDesc">Year · New</option>
-            <option value="yearAsc">Year · Old</option>
-          </select>
-        </div>
+        <SectionHeader
+          label="All Items"
+          right={
+            <select
+              value={sort}
+              onChange={(e) => setSort(e.target.value as typeof sort)}
+              className="bg-transparent border border-white/8 px-2.5 py-1 font-mono text-[10px] tracking-[0.15em] uppercase text-white/35 focus:outline-none focus:border-[#C4A35B]/50 focus:text-[#C4A35B] transition-colors appearance-none cursor-pointer"
+            >
+              <option value="none">Featured</option>
+              <option value="priceAsc">Price ↑</option>
+              <option value="priceDesc">Price ↓</option>
+              <option value="yearDesc">Year · New</option>
+              <option value="yearAsc">Year · Old</option>
+            </select>
+          }
+        />
 
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 md:gap-4">
           {allSorted.map((product, i) => (

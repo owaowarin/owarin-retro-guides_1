@@ -1,4 +1,4 @@
-import { X, Home, ShoppingBag, Shield, LayoutGrid, ClipboardList, Package, Palette, User, ChevronDown } from 'lucide-react';
+import { X, Home, ClipboardList, Package, Palette, User, ChevronDown } from 'lucide-react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useProductStore } from '@/stores/useProductStore';
 import { useMemo, useState } from 'react';
@@ -50,7 +50,7 @@ const MobileSidebar = ({ isOpen, onClose, onAdminTab, activeAdminTab }: MobileSi
       <aside className="fixed right-0 top-0 bottom-0 w-72 bg-card border-l border-border z-50 overflow-y-auto flex flex-col" style={{ animation: 'slideInRight 0.2s ease' }}>
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b border-border flex-shrink-0">
-          <span className="font-display text-lg text-primary tracking-widest">
+          <span className="font-mono text-[10px] tracking-[0.35em] uppercase text-primary">
             {isAdminPage ? 'ADMIN' : 'OWARIN'}
           </span>
           <button onClick={onClose} className="p-1 text-muted-foreground hover:text-foreground transition-colors">
@@ -94,14 +94,15 @@ const MobileSidebar = ({ isOpen, onClose, onAdminTab, activeAdminTab }: MobileSi
             {/* Main links */}
             <div className="p-4 space-y-1 border-b border-border">
               {[
-                { to: '/', label: 'HOME', icon: Home },
-                { to: '/all-products', label: 'ALL PRODUCTS', icon: LayoutGrid },
-                { to: '/checkout', label: 'CHECKOUT', icon: ShoppingBag },
-                { to: '/admin', label: 'ADMIN', icon: Shield },
-              ].map(({ to, label, icon: Icon }) => (
+                { to: '/', label: 'HOME' },
+                { to: '/all-products', label: 'ALL PRODUCTS' },
+                { to: '/checkout', label: 'CHECKOUT' },
+                { to: '/admin', label: 'ADMIN' },
+              ].map(({ to, label }) => (
                 <Link key={to} to={to} onClick={onClose}
-                  className="flex items-center gap-3 px-3 py-2.5 text-sm tracking-wider text-secondary-foreground hover:text-primary hover:bg-secondary transition-colors">
-                  <Icon size={16} />{label}
+                  className="flex items-center gap-3 px-3 py-2.5 font-mono text-[10px] tracking-[0.2em] uppercase text-white/32 hover:text-[#C4A35B] transition-colors">
+                  <span className="text-white/18 text-[10px] leading-none">—</span>
+                  {label}
                 </Link>
               ))}
             </div>

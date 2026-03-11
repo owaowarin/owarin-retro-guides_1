@@ -36,11 +36,8 @@ const ProductCard = ({ product, priority = false }: ProductCardProps) => {
     }
   };
 
-  const maxLen = 52;
-  const isTruncated = product.title.length > maxLen;
-  const shortTitle = isTruncated ? product.title.slice(0, maxLen).trimEnd() : product.title;
-  const genreTags = product.genre
-    ? product.genre.split(',').map((g) => g.trim()).filter(Boolean).slice(0, 2)
+  const platforms = product.platform
+    ? product.platform.split('/').map((s) => s.trim()).filter(Boolean)
     : [];
 
   return (
@@ -72,56 +69,39 @@ const ProductCard = ({ product, priority = false }: ProductCardProps) => {
         )}
       </div>
 
-      {/* ── Info ── */}
+      {/* ── Info — fixed-height zones for card symmetry ── */}
       <div className="flex flex-col flex-grow">
 
-        {/* Release Year */}
-        {releaseYear && (
-          <span className="font-mono text-[9px] sm:text-[10px] text-white/25 tracking-[0.15em] mb-1 leading-none">
-            {releaseYear}
-          </span>
-        )}
+        {/* Zone 1: Release Year — fixed height, always rendered */}
+        <div className="h-[14px] mb-1">
+          {releaseYear && (
+            <span className="font-mono text-[9px] text-white/25 tracking-[0.15em] leading-none">
+              {releaseYear}
+            </span>
+          )}
+        </div>
 
-        {/* Title — fixed height, 2 lines */}
-        <div className="h-[3.2rem] mb-1.5 overflow-hidden">
-          <h3 className="text-[13px] font-light text-white/72 leading-snug group-hover:text-white/92 transition-colors tracking-[0.01em]">
-            {shortTitle}
-            {isTruncated && (
-              <span className="font-mono text-[9px] text-white/20 ml-1">[—]</span>
-            )}
+        {/* Zone 2: Title — 2-line clamp, fixed height */}
+        <div className="h-[2.8rem] mb-2 overflow-hidden">
+          <h3 className="text-[12px] sm:text-[13px] font-light text-white/72 leading-[1.4] group-hover:text-white/92 transition-colors tracking-[0.01em] line-clamp-2">
+            {product.title}
           </h3>
         </div>
 
-        {/* Platform tags */}
-        {product.platform && (
-          <div className="flex flex-wrap gap-1 mb-1.5">
-            {product.platform.split('/').map((s) => s.trim()).filter(Boolean).map((plat) => (
-              <span
-                key={plat}
-                className="font-mono text-[9px] tracking-[0.12em] uppercase text-white/30 border border-white/8 px-1.5 h-[18px] inline-flex items-center leading-none"
-              >
-                {plat}
-              </span>
-            ))}
-          </div>
-        )}
+        {/* Zone 3: Platform tags — fixed height, always rendered */}
+        <div className="h-[20px] mb-2 flex items-center gap-1 overflow-hidden">
+          {platforms.slice(0, 2).map((plat) => (
+            <span
+              key={plat}
+              className="font-mono text-[8px] tracking-[0.12em] uppercase text-white/30 border border-white/8 px-1.5 h-[18px] inline-flex items-center leading-none flex-shrink-0"
+            >
+              {plat}
+            </span>
+          ))}
+        </div>
 
-        {/* Genre tags */}
-        {genreTags.length > 0 && (
-          <div className="flex flex-wrap gap-1 mb-2 min-h-[18px]">
-            {genreTags.map((g) => (
-              <span
-                key={g}
-                className="font-mono text-[9px] tracking-[0.1em] uppercase text-[#C4A35B]/52 border border-[#C4A35B]/18 px-1.5 h-[18px] inline-flex items-center leading-none"
-              >
-                {g}
-              </span>
-            ))}
-          </div>
-        )}
-
-        {/* Price + Cart */}
-        <div className="flex items-center justify-between mt-auto pt-1">
+        {/* Zone 4: Price + Cart — always at bottom */}
+        <div className="flex items-center justify-between mt-auto">
           <span className="font-mono text-[12px] sm:text-[13px] font-bold text-[#D4AF37] lining-nums">
             {price.toLocaleString()}
             <span className="text-[9px] font-normal text-white/20 tracking-[0.1em] ml-1">THB</span>

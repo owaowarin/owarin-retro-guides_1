@@ -198,7 +198,7 @@ const AllProducts = () => {
         </div>
       </div>
 
-      {/* Main — pt-[88px] accounts for search (40px) + control (44px) bars on top of App's pt-[84px] */}
+      {/* Main — pt-[88px] = search bar (40px) + control bar (44px) + 4px buffer, on top of App's pt-[84px] */}
       <main className="pt-[88px] px-4 pb-20 max-w-screen-2xl mx-auto">
 
         {/* Active filter chips */}
