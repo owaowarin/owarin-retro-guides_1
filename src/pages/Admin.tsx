@@ -870,7 +870,6 @@ const BulkUploadView = ({ onBack }: { onBack: () => void }) => {
 const ProductsTab = () => {
   const { products, addProduct, updateProduct, deleteProduct } = useProductStore();
   const conditionGrades = useAppStore((s) => s.conditionGrades);
-  const discountRate = useAppStore((s) => s.discountRate);
   const [editing, setEditing] = useState<string | null>(null);
   const [form, setForm] = useState<Partial<Product>>({});
   
@@ -1392,7 +1391,7 @@ const ProductsTab = () => {
           )}
           <div className="flex-1 min-w-0">
             <p className="text-sm text-foreground truncate">{p.title}</p>
-            <p className="text-xs text-muted-foreground">{p.id} · {p.price.toLocaleString()} THB{discountRate > 0 && <span className="ml-1.5 text-[10px] text-primary border border-primary/30 px-1.5 py-0.5 tracking-[0.1em]">-{Math.round(discountRate)}% → {Math.round(p.price * (1 - discountRate / 100)).toLocaleString()}</span>}{p.hidden ? <span className="ml-2 text-[10px] text-white/35 border border-white/12 px-1.5 py-0.5 tracking-[0.1em]">HIDDEN</span> : null}</p>
+            <p className="text-xs text-muted-foreground">{p.id} · {p.price.toLocaleString()} THB</p>
           </div>
           {!selectMode && (
             <>
@@ -1450,14 +1449,7 @@ const ProductsTab = () => {
                 <p className="font-display text-[11px] text-foreground leading-snug line-clamp-2">{p.title}</p>
                 <p className="text-[10px] text-muted-foreground">{p.id}</p>
                 <div className="mt-1 flex items-center justify-between">
-                  {discountRate > 0 ? (
-                    <div className="flex flex-col">
-                      <span className="text-xs text-primary font-medium">{Math.round(p.price * (1 - discountRate / 100)).toLocaleString()} THB</span>
-                      <span className="text-[10px] text-muted-foreground line-through">{p.price.toLocaleString()}</span>
-                    </div>
-                  ) : (
-                    <span className="text-xs text-primary font-medium">{p.price.toLocaleString()} THB</span>
-                  )}
+                  <span className="text-xs text-primary font-medium">{p.price.toLocaleString()} THB</span>
                   {!selectMode && (
                     <div className="flex gap-1">
                       <button onClick={() => { updateProduct(p.id, { hidden: !p.hidden }); toast.success(p.hidden ? 'Product visible' : 'Product hidden'); }} className={`transition-colors ${p.hidden ? 'text-primary' : 'text-muted-foreground hover:text-primary'}`} title={p.hidden ? 'Show' : 'Hide'}>{p.hidden ? <Eye size={12} /> : <EyeOff size={12} />}</button>
@@ -1499,7 +1491,7 @@ const StoreInfoSubTab = () => {
     storeSubtext, setStoreSubtext,
     logoUrl, setLogoUrl,
     logoSize, setLogoSize,
-    heroFontSize, taglineFontSize, subtextFontSize, discountRate,
+    heroFontSize, taglineFontSize, subtextFontSize,
     setStoreInfo,
   } = useAppStore();
 
@@ -1512,8 +1504,6 @@ const StoreInfoSubTab = () => {
   const [heroFS, setHeroFS] = useState(heroFontSize ?? 36);
   const [taglineFS, setTaglineFS] = useState(taglineFontSize ?? 12);
   const [subtextFS, setSubtextFS] = useState(subtextFontSize ?? 11);
-  const [discountEnabled, setDiscountEnabled] = useState((discountRate ?? 0) > 0);
-  const [discountFS, setDiscountFS] = useState(discountRate && discountRate > 0 ? discountRate : 20);
 
   const handleLogoUpload = (file: File) => {
     const reader = new FileReader();
@@ -1534,7 +1524,7 @@ const StoreInfoSubTab = () => {
       heroFontSize: heroFS,
       taglineFontSize: taglineFS,
       subtextFontSize: subtextFS,
-      discountRate: discountEnabled ? discountFS : 0,
+      discountRate: 0,
     });
     toast.success('Store info updated');
   };
@@ -1631,36 +1621,6 @@ const StoreInfoSubTab = () => {
           <input type="range" min={8} max={20} value={subtextFS} onChange={(e) => setSubtextFS(Number(e.target.value))} className="w-full accent-primary" />
           <div className="flex justify-between text-[10px] text-muted-foreground mt-0.5"><span>8px</span><span>20px</span></div>
         </div>
-
-        <div>
-          <label className={labelClass}>
-            Discount Rate —{' '}
-            {discountEnabled
-              ? <span className="text-primary">-{discountFS}% ACTIVE</span>
-              : <span className="text-white/25">OFF</span>}
-          </label>
-          {/* Enable/disable toggle */}
-          <div className="flex items-center gap-3 mb-2">
-            <button
-              type="button"
-              onClick={() => setDiscountEnabled(v => !v)}
-              className={`relative w-10 h-5 transition-colors border ${discountEnabled ? 'bg-primary border-primary' : 'bg-transparent border-white/20'}`}
-            >
-              <span className={`absolute top-0.5 w-4 h-4 transition-transform ${discountEnabled ? 'translate-x-5 bg-[#0c0c0e]' : 'translate-x-0.5 bg-white/30'}`} />
-            </button>
-            <span className="font-mono text-[10px] tracking-[0.15em] text-white/40">
-              {discountEnabled ? 'ENABLED' : 'DISABLED'}
-            </span>
-          </div>
-          {/* Rate slider — only active when enabled */}
-          <div className={discountEnabled ? '' : 'opacity-30 pointer-events-none'}>
-            <input type="range" min={1} max={70} value={discountFS} onChange={(e) => setDiscountFS(Number(e.target.value))} className="w-full accent-primary" />
-            <div className="flex justify-between mt-1">
-              <span className="font-mono text-[9px] text-white/25">1%</span>
-              <span className="font-mono text-[9px] text-primary">{discountFS}% OFF</span>
-              <span className="font-mono text-[9px] text-white/25">70%</span>
-            </div>
-          </div>
           <div className="flex justify-between text-[10px] text-muted-foreground mt-0.5"><span>0% (off)</span><span>70%</span></div>
         </div>
       </div>

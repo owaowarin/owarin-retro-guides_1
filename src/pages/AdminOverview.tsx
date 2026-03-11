@@ -366,7 +366,7 @@ const AdminOverview = ({ onNavigateToOrders }: AdminOverviewProps) => {
                       />
                       <div className="min-w-0">
                         <p className="text-foreground truncate max-w-[180px]">
-                          {p.title.startsWith('「') ? p.title : `「${p.title}」`}
+                          {p.title}
                         </p>
                         <p className="text-muted-foreground">{p.platform}</p>
                       </div>
@@ -427,7 +427,7 @@ const AdminOverview = ({ onNavigateToOrders }: AdminOverviewProps) => {
                 />
                 <div className="min-w-0">
                   <p className="text-sm text-foreground font-medium truncate">
-                    {selectedProduct.title.startsWith('「') ? selectedProduct.title : `「${selectedProduct.title}」`}
+                    {selectedProduct.title}
                   </p>
                   <p className="text-[10px] text-muted-foreground">{selectedProduct.platform} · {(viewCounts[selectedProduct.id] ?? 0).toLocaleString()} views</p>
                 </div>
