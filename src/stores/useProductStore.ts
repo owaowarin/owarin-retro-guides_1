@@ -2,7 +2,7 @@
 import { create } from 'zustand';
 import { supabase } from '@/lib/supabase';
 
-export type ProductStatusTag = 'rare' | 'mint' | 'none';
+export type ProductStatusTag = 'soldOut' | 'none';
 
 export interface Product {
   id: string;
@@ -103,6 +103,22 @@ export const useProductStore = create<ProductStore>((set, get) => ({
       set({ products: data.map(fromRow) });
     }
     set({ loading: false });
+
+    // Realtime — sync on any DB change
+    supabase
+      .channel('products-realtime')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'products' }, (payload) => {
+        if (payload.eventType === 'INSERT') {
+          set((s) => ({ products: [...s.products, fromRow(payload.new)] }));
+        } else if (payload.eventType === 'UPDATE') {
+          set((s) => ({
+            products: s.products.map((p) => (p.id === (payload.new as any).id ? fromRow(payload.new) : p)),
+          }));
+        } else if (payload.eventType === 'DELETE') {
+          set((s) => ({ products: s.products.filter((p) => p.id !== (payload.old as any).id) }));
+        }
+      })
+      .subscribe();
   },
 
   fetchMeta: async () => {

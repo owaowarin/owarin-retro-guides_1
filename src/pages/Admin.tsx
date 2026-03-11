@@ -27,6 +27,11 @@ import {
 import { CSS } from '@dnd-kit/utilities';
 import { toast } from 'sonner';
 
+
+/* ─── Strip Japanese brackets from titles ─── */
+const stripBrackets = (s: string) => s.replace(/^[「『【〔《〈]|[」』】〕》〉]$/g, '').trim();
+
+
 /* ─── Shared input style ─── */
 const inputClass =
   'w-full bg-secondary border border-border px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary transition-colors';
@@ -1000,7 +1005,7 @@ const ProductsTab = () => {
   };
 
   const startEdit = (p: Product) => {
-    setForm({ ...p });
+    setForm({ ...p, title: stripBrackets(p.title) });
     const imgs: string[] = p.images && p.images.length > 0
       ? p.images
       : [p.frontImage, p.backImage].filter(Boolean);
@@ -1169,8 +1174,6 @@ const ProductsTab = () => {
               <select value={form.statusTag || 'none'} onChange={(e) => setForm((f) => ({ ...f, statusTag: e.target.value as Product['statusTag'] }))} className={inputClass}>
                 <option value="none">Available</option>
                 <option value="soldOut">Sold Out</option>
-                <option value="rare">Rare</option>
-                <option value="mint">Mint</option>
               </select>
             </div>
           </div>
@@ -1374,11 +1377,20 @@ const ProductsTab = () => {
             <div className="w-10 h-14 rounded bg-secondary border border-border flex items-center justify-center flex-shrink-0"><ImageIcon size={14} className="text-muted-foreground" /></div>
           )}
           <div className="flex-1 min-w-0">
-            <p className="text-sm text-foreground truncate">{p.title}</p>
+            <p className="text-sm text-foreground truncate">{stripBrackets(p.title)}</p>
             <p className="text-xs text-muted-foreground">{p.id} · {p.price.toLocaleString()} THB{discountRate > 0 && <span className="ml-1.5 text-[10px] text-primary border border-primary/30 px-1.5 py-0.5 tracking-[0.1em]">-{Math.round(discountRate)}% → {Math.round(p.price * (1 - discountRate / 100)).toLocaleString()}</span>}{p.hidden ? <span className="ml-2 text-[10px] text-white/35 border border-white/12 px-1.5 py-0.5 tracking-[0.1em]">HIDDEN</span> : null}</p>
           </div>
           {!selectMode && (
             <>
+              {/* Quick status toggle */}
+              <button
+                onClick={() => updateProduct(p.id, { statusTag: p.statusTag === 'soldOut' ? 'none' : 'soldOut' })}
+                className={`flex items-center gap-1.5 px-2.5 py-1 border text-[10px] tracking-[0.1em] transition-colors flex-shrink-0 ${p.statusTag === 'soldOut' ? 'border-muted-foreground/30 text-muted-foreground' : 'border-green-800/40 text-green-700'}`}
+                title="Toggle Available / Sold Out"
+              >
+                <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${p.statusTag === 'soldOut' ? 'border border-muted-foreground/50' : 'bg-green-700'}`} />
+                {p.statusTag === 'soldOut' ? 'SOLD OUT' : 'AVAILABLE'}
+              </button>
               <button onClick={() => { updateProduct(p.id, { hidden: !p.hidden }); toast.success(p.hidden ? 'Product visible' : 'Product hidden'); }} className={`transition-colors ${p.hidden ? 'text-primary' : 'text-muted-foreground hover:text-primary'}`} title={p.hidden ? 'Show product' : 'Hide product'}>{p.hidden ? <Eye size={16} /> : <EyeOff size={16} />}</button>
               <button onClick={() => startEdit(p)} className="text-muted-foreground hover:text-primary transition-colors"><Edit2 size={16} /></button>
               <button onClick={() => { deleteProduct(p.id); toast.success('Deleted'); }} className="text-muted-foreground hover:text-destructive transition-colors"><Trash2 size={16} /></button>
@@ -1416,7 +1428,7 @@ const ProductsTab = () => {
                 )}
               </div>
               <div className="p-2">
-                <p className="font-display text-[11px] text-foreground leading-snug line-clamp-2">{p.title}</p>
+                <p className="font-display text-[11px] text-foreground leading-snug line-clamp-2">{stripBrackets(p.title)}</p>
                 <p className="text-[10px] text-muted-foreground">{p.id}</p>
                 <div className="mt-1 flex items-center justify-between">
                   {discountRate > 0 ? (
