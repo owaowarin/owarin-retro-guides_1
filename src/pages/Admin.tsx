@@ -229,7 +229,7 @@ const OrdersTab = ({ highlightOrderId, onClearHighlight }: { highlightOrderId?: 
   const { orders, updateOrderStatus, deleteOrder } = useAppStore();
   
   const [view, setView] = useState<'list' | 'grid'>('list');
-  const [statusFilter, setStatusFilter] = useState<'Pending' | 'Shipped'>('Pending');
+  const [statusFilter, setStatusFilter] = useState<'Paid' | 'Shipped'>('Paid');
 
   // Auto-switch to correct tab and scroll to highlighted order
   const highlightRef = useMemo(() => highlightOrderId, [highlightOrderId]);
@@ -240,11 +240,11 @@ const OrdersTab = ({ highlightOrderId, onClearHighlight }: { highlightOrderId?: 
   useMemo(() => {
     if (highlightedOrder) {
       if (highlightedOrder.status === 'Shipped') setStatusFilter('Shipped');
-      else setStatusFilter('Pending');
+      else setStatusFilter('Paid');
     }
   }, [highlightedOrder]);
 
-  const filtered = orders.filter((o) => o.status === statusFilter || (statusFilter === 'Pending' && o.status === 'Paid'));
+  const filtered = orders.filter((o) => o.status === statusFilter);
 
   // Group by date
   const grouped = useMemo(() => {
@@ -318,17 +318,17 @@ const OrdersTab = ({ highlightOrderId, onClearHighlight }: { highlightOrderId?: 
         </button>
       </div>
 
-      {/* Status toggle */}
+      {/* Status toggle — PAID / SHIPPED only */}
       <div className="flex items-center gap-1 border-t border-border pt-2">
-        {(['Pending', 'Paid', 'Shipped'] as const).map((s, i, arr) => (
+        {(['Paid', 'Shipped'] as const).map((s) => (
           <button
             key={s}
             onClick={() => updateOrderStatus(o.id, s)}
-            className={`flex-1 py-1 text-[10px] tracking-wider transition-colors border ${
+            className={`flex-1 py-1 text-[10px] tracking-[0.15em] transition-colors border ${
               o.status === s
                 ? 'border-primary text-primary bg-primary/10'
                 : 'border-border text-muted-foreground hover:border-primary/50'
-            } ${i === 0 ? 'rounded-l' : ''} ${i === arr.length - 1 ? 'rounded-r' : ''}`}
+            }`}
           >
             {s.toUpperCase()}
           </button>
@@ -348,10 +348,10 @@ const OrdersTab = ({ highlightOrderId, onClearHighlight }: { highlightOrderId?: 
           {/* Status filter toggle */}
           <div className="inline-flex border border-border bg-secondary/60 text-[11px]">
             <button
-              onClick={() => setStatusFilter('Pending')}
-              className={`px-4 py-1.5 tracking-[0.15em] transition-colors ${statusFilter === 'Pending' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'}`}
+              onClick={() => setStatusFilter('Paid')}
+              className={`px-4 py-1.5 tracking-[0.15em] transition-colors ${statusFilter === 'Paid' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'}`}
             >
-              PENDING
+              PAID
             </button>
             <button
               onClick={() => setStatusFilter('Shipped')}
@@ -369,7 +369,7 @@ const OrdersTab = ({ highlightOrderId, onClearHighlight }: { highlightOrderId?: 
       </div>
 
       {filtered.length === 0 && (
-        <p className="text-sm text-muted-foreground">No {statusFilter.toLowerCase()} orders.</p>
+        <p className="font-mono text-[10px] tracking-[0.2em] text-white/20 uppercase">No {statusFilter.toLowerCase()} orders.</p>
       )}
 
       {/* Grouped by date */}
@@ -1220,15 +1220,23 @@ const ProductsTab = () => {
   /* PRODUCT LIST */
   return (
     <div className="space-y-3">
-      <div className="flex items-center justify-between gap-3">
-        <div className="flex items-center gap-2 flex-wrap">
-          <div className="inline-flex border border-border bg-secondary/60 text-[11px] whitespace-nowrap">
-            <button type="button" onClick={() => setStockFilter('available')} className={`px-3 py-1.5 tracking-[0.15em] transition-colors ${stockFilter === 'available' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'}`}>AVAILABLE</button>
-            <button type="button" onClick={() => setStockFilter('soldout')} className={`px-3 py-1.5 tracking-[0.15em] transition-colors ${stockFilter === 'soldout' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'}`}>SOLD OUT</button>
-          </div>
-          <button type="button" onClick={() => setStockFilter(stockFilter === 'hidden' ? 'available' : 'hidden')} className={`flex items-center gap-1 px-3 py-1.5 border border-border text-[11px] tracking-[0.15em] transition-colors ${stockFilter === 'hidden' ? 'bg-primary text-primary-foreground border-primary' : 'bg-secondary/60 text-muted-foreground hover:text-foreground'}`}><EyeOff size={11} />HIDDEN</button>
+      {/* ── Row 1: Filter pills + search ── */}
+      <div className="flex items-center gap-2 flex-wrap">
+        <div className="inline-flex border border-border text-[11px]">
+          <button type="button" onClick={() => setStockFilter('available')}
+            className={`px-3 py-1.5 tracking-[0.15em] transition-colors ${stockFilter === 'available' ? 'bg-primary text-primary-foreground' : 'text-white/40 hover:text-white/70'}`}>
+            AVAILABLE
+          </button>
+          <button type="button" onClick={() => setStockFilter('soldout')}
+            className={`px-3 py-1.5 tracking-[0.15em] transition-colors border-l border-border ${stockFilter === 'soldout' ? 'bg-primary text-primary-foreground' : 'text-white/40 hover:text-white/70'}`}>
+            SOLD OUT
+          </button>
+          <button type="button" onClick={() => setStockFilter('hidden')}
+            className={`flex items-center gap-1.5 px-3 py-1.5 tracking-[0.15em] transition-colors border-l border-border ${stockFilter === 'hidden' ? 'bg-primary text-primary-foreground' : 'text-white/40 hover:text-white/70'}`}>
+            <EyeOff size={10} /> HIDDEN
+          </button>
         </div>
-        <div className="flex-1 max-w-md mx-auto">
+        <div className="flex-1 min-w-[180px]">
           <GlobalSearch
             value={search}
             onChange={setSearch}
@@ -1241,57 +1249,70 @@ const ProductsTab = () => {
             placeholder="Search by title, ID, or publisher…"
           />
         </div>
-        <div className="flex items-center gap-2 whitespace-nowrap">
-          <div className="inline-flex border border-border bg-secondary/60 text-[11px]">
-            <button type="button" onClick={() => setView('list')} className={`px-2 py-1.5 transition-colors ${view === 'list' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'}`}><List size={14} /></button>
-            <button type="button" onClick={() => setView('grid')} className={`px-2 py-1.5 transition-colors ${view === 'grid' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'}`}><LayoutGrid size={14} /></button>
-          </div>
-          {/* Select mode toggle */}
-          <button
-            type="button"
-            onClick={() => { setSelectMode((v) => !v); setSelectedIds(new Set()); }}
-            className={`inline-flex items-center px-3 py-1.5 border text-[11px] tracking-[0.15em] transition-colors ${selectMode ? 'bg-primary text-primary-foreground border-primary' : 'bg-secondary/60 border-border text-muted-foreground hover:text-foreground'}`}
-          >
-            Select
+      </div>
+
+      {/* ── Row 2: View toggle + count + actions ── */}
+      <div className="flex items-center gap-2">
+        {/* View toggle */}
+        <div className="inline-flex border border-border text-[11px]">
+          <button type="button" onClick={() => setView('list')}
+            className={`px-2 py-1.5 transition-colors ${view === 'list' ? 'bg-primary text-primary-foreground' : 'text-white/40 hover:text-white/70'}`}>
+            <List size={14} />
           </button>
-          {/* Add dropdown: SINGLE or BULK */}
-          <div className="relative">
-            <button
-              onClick={() => setShowAddMenu((v) => !v)}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 border border-primary/60 bg-primary/10 text-[11px] tracking-[0.15em] text-primary hover:bg-primary hover:text-primary-foreground transition-colors"
-            >
-              <Plus size={13} /> Add
-              <ChevronDown size={11} className={`transition-transform duration-200 ${showAddMenu ? 'rotate-180' : ''}`} />
-            </button>
-            {showAddMenu && (
-              <>
-                <div className="fixed inset-0 z-10" onClick={() => setShowAddMenu(false)} />
-                <div className="absolute right-0 top-full mt-1.5 z-20 bg-card border border-border shadow-lg overflow-hidden min-w-[140px]">
-                  <button
-                    onClick={() => { setShowAddMenu(false); startNew(); }}
-                    className="w-full text-left px-4 py-2.5 text-foreground hover:bg-secondary transition-colors flex items-center gap-2.5"
-                  >
-                    <Plus size={13} className="text-primary flex-shrink-0" />
-                    <div>
-                      <p className="text-xs font-medium tracking-wider">SINGLE</p>
-                      <p className="text-[10px] text-muted-foreground">Add one product</p>
-                    </div>
-                  </button>
-                  <div className="border-t border-border" />
-                  <button
-                    onClick={() => { setShowAddMenu(false); setAddMode('bulk'); }}
-                    className="w-full text-left px-4 py-2.5 text-foreground hover:bg-secondary transition-colors flex items-center gap-2.5"
-                  >
-                    <FileUp size={13} className="text-primary flex-shrink-0" />
-                    <div>
-                      <p className="text-xs font-medium tracking-wider">BULK</p>
-                      <p className="text-[10px] text-muted-foreground">Upload CSV</p>
-                    </div>
-                  </button>
-                </div>
-              </>
-            )}
-          </div>
+          <button type="button" onClick={() => setView('grid')}
+            className={`px-2 py-1.5 transition-colors border-l border-border ${view === 'grid' ? 'bg-primary text-primary-foreground' : 'text-white/40 hover:text-white/70'}`}>
+            <LayoutGrid size={14} />
+          </button>
+        </div>
+        {/* Item count */}
+        <span className="font-mono text-[10px] tracking-[0.18em] text-white/25 uppercase flex-1">
+          {filteredByStock.length} item{filteredByStock.length !== 1 ? 's' : ''}
+        </span>
+        {/* Select */}
+        <button
+          type="button"
+          onClick={() => { setSelectMode((v) => !v); setSelectedIds(new Set()); }}
+          className={`px-3 py-1.5 border text-[11px] tracking-[0.15em] transition-colors ${selectMode ? 'bg-primary text-primary-foreground border-primary' : 'border-border text-white/40 hover:text-white/70'}`}
+        >
+          Select
+        </button>
+        {/* Add dropdown */}
+        <div className="relative">
+          <button
+            onClick={() => setShowAddMenu((v) => !v)}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 border border-primary/60 bg-primary/10 text-[11px] tracking-[0.15em] text-primary hover:bg-primary hover:text-primary-foreground transition-colors"
+          >
+            <Plus size={13} /> Add
+            <ChevronDown size={11} className={`transition-transform duration-200 ${showAddMenu ? 'rotate-180' : ''}`} />
+          </button>
+          {showAddMenu && (
+            <>
+              <div className="fixed inset-0 z-10" onClick={() => setShowAddMenu(false)} />
+              <div className="absolute right-0 top-full mt-1.5 z-20 bg-card border border-border shadow-lg overflow-hidden min-w-[140px]">
+                <button
+                  onClick={() => { setShowAddMenu(false); startNew(); }}
+                  className="w-full text-left px-4 py-2.5 text-foreground hover:bg-secondary transition-colors flex items-center gap-2.5"
+                >
+                  <Plus size={13} className="text-primary flex-shrink-0" />
+                  <div>
+                    <p className="text-xs font-medium tracking-wider">SINGLE</p>
+                    <p className="text-[10px] text-muted-foreground">Add one product</p>
+                  </div>
+                </button>
+                <div className="border-t border-border" />
+                <button
+                  onClick={() => { setShowAddMenu(false); setAddMode('bulk'); }}
+                  className="w-full text-left px-4 py-2.5 text-foreground hover:bg-secondary transition-colors flex items-center gap-2.5"
+                >
+                  <FileUp size={13} className="text-primary flex-shrink-0" />
+                  <div>
+                    <p className="text-xs font-medium tracking-wider">BULK</p>
+                    <p className="text-[10px] text-muted-foreground">Upload CSV</p>
+                  </div>
+                </button>
+              </div>
+            </>
+          )}
         </div>
       </div>
 
@@ -1354,7 +1375,7 @@ const ProductsTab = () => {
           )}
           <div className="flex-1 min-w-0">
             <p className="text-sm text-foreground truncate">{p.title}</p>
-            <p className="text-xs text-muted-foreground">{p.id} · {p.price.toLocaleString()} THB{discountRate > 0 && <span className="ml-1.5 text-[10px] text-primary border border-primary/30 rounded px-1.5 py-0.5 tracking-wider">-{Math.round(discountRate)}% → {Math.round(p.price * (1 - discountRate / 100)).toLocaleString()}</span>}{p.hidden ? <span className="ml-2 text-[10px] text-primary/70 border border-primary/30 rounded px-1.5 py-0.5 tracking-wider">HIDDEN</span> : null}</p>
+            <p className="text-xs text-muted-foreground">{p.id} · {p.price.toLocaleString()} THB{discountRate > 0 && <span className="ml-1.5 text-[10px] text-primary border border-primary/30 px-1.5 py-0.5 tracking-[0.1em]">-{Math.round(discountRate)}% → {Math.round(p.price * (1 - discountRate / 100)).toLocaleString()}</span>}{p.hidden ? <span className="ml-2 text-[10px] text-white/35 border border-white/12 px-1.5 py-0.5 tracking-[0.1em]">HIDDEN</span> : null}</p>
           </div>
           {!selectMode && (
             <>
@@ -1460,7 +1481,8 @@ const StoreInfoSubTab = () => {
   const [heroFS, setHeroFS] = useState(heroFontSize ?? 36);
   const [taglineFS, setTaglineFS] = useState(taglineFontSize ?? 12);
   const [subtextFS, setSubtextFS] = useState(subtextFontSize ?? 11);
-  const [discountFS, setDiscountFS] = useState(discountRate ?? 0);
+  const [discountEnabled, setDiscountEnabled] = useState((discountRate ?? 0) > 0);
+  const [discountFS, setDiscountFS] = useState(discountRate && discountRate > 0 ? discountRate : 20);
 
   const handleLogoUpload = (file: File) => {
     const reader = new FileReader();
@@ -1481,7 +1503,7 @@ const StoreInfoSubTab = () => {
       heroFontSize: heroFS,
       taglineFontSize: taglineFS,
       subtextFontSize: subtextFS,
-      discountRate: discountFS,
+      discountRate: discountEnabled ? discountFS : 0,
     });
     toast.success('Store info updated');
   };
@@ -1581,9 +1603,33 @@ const StoreInfoSubTab = () => {
 
         <div>
           <label className={labelClass}>
-            Discount Rate — {discountFS > 0 ? <span className="text-primary">-{discountFS}% OFF</span> : <span className="text-muted-foreground/60">OFF</span>}
+            Discount Rate —{' '}
+            {discountEnabled
+              ? <span className="text-primary">-{discountFS}% ACTIVE</span>
+              : <span className="text-white/25">OFF</span>}
           </label>
-          <input type="range" min={0} max={70} value={discountFS} onChange={(e) => setDiscountFS(Number(e.target.value))} className="w-full accent-primary" />
+          {/* Enable/disable toggle */}
+          <div className="flex items-center gap-3 mb-2">
+            <button
+              type="button"
+              onClick={() => setDiscountEnabled(v => !v)}
+              className={`relative w-10 h-5 transition-colors border ${discountEnabled ? 'bg-primary border-primary' : 'bg-transparent border-white/20'}`}
+            >
+              <span className={`absolute top-0.5 w-4 h-4 transition-transform ${discountEnabled ? 'translate-x-5 bg-[#0c0c0e]' : 'translate-x-0.5 bg-white/30'}`} />
+            </button>
+            <span className="font-mono text-[10px] tracking-[0.15em] text-white/40">
+              {discountEnabled ? 'ENABLED' : 'DISABLED'}
+            </span>
+          </div>
+          {/* Rate slider — only active when enabled */}
+          <div className={discountEnabled ? '' : 'opacity-30 pointer-events-none'}>
+            <input type="range" min={1} max={70} value={discountFS} onChange={(e) => setDiscountFS(Number(e.target.value))} className="w-full accent-primary" />
+            <div className="flex justify-between mt-1">
+              <span className="font-mono text-[9px] text-white/25">1%</span>
+              <span className="font-mono text-[9px] text-primary">{discountFS}% OFF</span>
+              <span className="font-mono text-[9px] text-white/25">70%</span>
+            </div>
+          </div>
           <div className="flex justify-between text-[10px] text-muted-foreground mt-0.5"><span>0% (off)</span><span>70%</span></div>
         </div>
       </div>
