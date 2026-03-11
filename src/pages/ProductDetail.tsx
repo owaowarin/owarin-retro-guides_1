@@ -4,6 +4,7 @@ import { Info, ShoppingBag, Check } from 'lucide-react';
 import { useProductStore } from '@/stores/useProductStore';
 import { useCartStore } from '@/stores/useCartStore';
 import { supabase } from '@/lib/supabase';
+import { useAppStore } from '@/stores/useAppStore';
 
 /* ── Inject Cormorant Garamond once ── */
 const injectFont = () => {
