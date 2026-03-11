@@ -45,10 +45,17 @@ function toRow(p: Product) {
   };
 }
 
+/* Strip ALL Japanese bracket variants — applied once at data-read level */
+const stripBrackets = (s: string): string =>
+  (s || '').replace(/^[「『【〔《〈｢》」』】〕》〉｣]/, '')
+           .replace(/[」』】〕》〉｣「『【〔《〈｢]$/, '')
+           .replace(/^[「『【〔《〈]/, '').replace(/[」』】〕》〉]$/, '')
+           .trim();
+
 function fromRow(r: any): Product {
   return {
     id: r.id,
-    title: r.title,
+    title: stripBrackets(r.title),
     price: r.price,
     condition: r.condition,
     platform: r.platform,
@@ -103,22 +110,6 @@ export const useProductStore = create<ProductStore>((set, get) => ({
       set({ products: data.map(fromRow) });
     }
     set({ loading: false });
-
-    // Realtime — sync on any DB change
-    supabase
-      .channel('products-realtime')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'products' }, (payload) => {
-        if (payload.eventType === 'INSERT') {
-          set((s) => ({ products: [...s.products, fromRow(payload.new)] }));
-        } else if (payload.eventType === 'UPDATE') {
-          set((s) => ({
-            products: s.products.map((p) => (p.id === (payload.new as any).id ? fromRow(payload.new) : p)),
-          }));
-        } else if (payload.eventType === 'DELETE') {
-          set((s) => ({ products: s.products.filter((p) => p.id !== (payload.old as any).id) }));
-        }
-      })
-      .subscribe();
   },
 
   fetchMeta: async () => {
@@ -147,6 +138,10 @@ export const useProductStore = create<ProductStore>((set, get) => ({
     const current = get().products.find((p) => p.id === id);
     if (!current) return;
     const merged = { ...current, ...updates };
+
+    // Optimistic — instant UI, no waiting for network
+    set((s) => ({ products: s.products.map((p) => (p.id === id ? merged : p)) }));
+
     const { data, error } = await supabase
       .from('products')
       .update(toRow(merged))
@@ -154,9 +149,11 @@ export const useProductStore = create<ProductStore>((set, get) => ({
       .select()
       .single();
     if (!error && data) {
-      set((s) => ({
-        products: s.products.map((p) => (p.id === id ? fromRow(data) : p)),
-      }));
+      // Confirm with server value (may differ e.g. timestamps)
+      set((s) => ({ products: s.products.map((p) => (p.id === id ? fromRow(data) : p)) }));
+    } else if (error) {
+      // Revert on failure
+      set((s) => ({ products: s.products.map((p) => (p.id === id ? current : p)) }));
     }
   },
 

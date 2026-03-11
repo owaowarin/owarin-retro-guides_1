@@ -70,7 +70,6 @@ const ProductDetail = () => {
   };
 
   const gradeInfo = conditionGrades.find((g) => g.code === product.condition);
-  const displayTitle = product.title.replace(/^「|」$/g, '');
 
   /* ── shared class shortcuts ── */
   const monoLabel = 'font-mono text-[8px] tracking-[0.22em] uppercase text-white/30 pt-0.5';
@@ -171,7 +170,7 @@ const ProductDetail = () => {
               style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontWeight: 300, lineHeight: 1.1 }}
               className="text-[30px] lg:text-[36px] text-white/88 mb-4 tracking-[0.01em]"
             >
-              {displayTitle}
+              {product.title}
             </h1>
 
             {/* Platform tags */}
