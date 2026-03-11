@@ -27,7 +27,7 @@ const MainLayout = () => {
     <div className="min-h-screen bg-background text-foreground">
       <Header onMenuToggle={() => setIsMenuOpen(!isMenuOpen)} />
       <MobileSidebar isOpen={isMenuOpen} onClose={() => setIsMenuOpen(false)} />
-      <main className="pt-14">
+      <main className="pt-[84px]">
         <Outlet />
       </main>
       <CartSheet />

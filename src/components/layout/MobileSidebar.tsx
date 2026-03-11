@@ -17,15 +17,10 @@ const MobileSidebar = ({ isOpen, onClose, onAdminTab, activeAdminTab }: MobileSi
   const isAdminPage = location.pathname === '/admin';
 
   const [expanded, setExpanded] = useState<Record<string, boolean>>({
-    platform: false,
     publisher: false,
     genre: false,
   });
   const toggle = (key: string) => setExpanded((prev) => ({ ...prev, [key]: !prev[key] }));
-
-  const platforms = useMemo(() =>
-    Array.from(new Set(products.filter((p) => !p.hidden).flatMap((p) => p.platform.split(/[,/]\s*/).map((s) => s.trim())))).filter(Boolean).sort(),
-    [products]);
 
   const publishers = useMemo(() =>
     Array.from(new Set(products.filter((p) => !p.hidden).flatMap((p) => p.publisher.split(/[,/]\s*/).map((s) => s.trim())))).filter(Boolean).sort(),
@@ -110,27 +105,6 @@ const MobileSidebar = ({ isOpen, onClose, onAdminTab, activeAdminTab }: MobileSi
                 </Link>
               ))}
             </div>
-
-            {/* ── PLATFORM — collapsible ── */}
-            {platforms.length > 0 && (
-              <div className="border-b border-border">
-                <button onClick={() => toggle('platform')}
-                  className="w-full flex items-center justify-between px-5 py-4 text-[11px] font-semibold tracking-[0.2em] text-[#D4AF37] uppercase hover:text-primary transition-colors">
-                  PLATFORM
-                  <ChevronDown size={14} className={`transition-transform duration-200 ${expanded.platform ? 'rotate-180' : ''}`} />
-                </button>
-                {expanded.platform && (
-                  <div className="px-3 pb-3 space-y-0.5">
-                    {platforms.map((p) => (
-                      <button key={p} onClick={() => goTo(`/all-products?platform=${encodeURIComponent(p)}`)}
-                        className="w-full text-left px-3 py-2 text-sm text-secondary-foreground hover:text-primary hover:bg-secondary transition-colors">
-                        {p}
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
-            )}
 
             {/* ── PUBLISHER — collapsible ── */}
             {publishers.length > 0 && (

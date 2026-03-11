@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { ShoppingBag, Check } from 'lucide-react';
+import { Plus, Check } from 'lucide-react';
 import type { Product } from '@/stores/useProductStore';
 import { useCartStore } from '@/stores/useCartStore';
 import { useAppStore } from '@/stores/useAppStore';
@@ -16,6 +16,11 @@ const ProductCard = ({ product }: ProductCardProps) => {
   const isSoldOut = product.statusTag === 'soldOut';
   const isInCart = items.some((i) => i.productId === product.id);
   const price = product.price;
+
+  // Release year (d-department DNA)
+  const releaseYear = product.releaseDate
+    ? new Date(product.releaseDate).getFullYear()
+    : null;
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -41,8 +46,8 @@ const ProductCard = ({ product }: ProductCardProps) => {
   return (
     <Link to={`/product/${product.id}`} className="group flex flex-col h-full">
 
-      {/* ── Image ── */}
-      <div className="relative aspect-[3/4] overflow-hidden bg-[#111114] mb-2.5">
+      {/* ── Image — 1:1 square ── */}
+      <div className="relative aspect-square overflow-hidden bg-[#111114] mb-2.5">
         <img
           src={product.frontImage}
           alt={product.title}
@@ -66,6 +71,13 @@ const ProductCard = ({ product }: ProductCardProps) => {
 
       {/* ── Info ── */}
       <div className="flex flex-col flex-grow">
+
+        {/* Release Year */}
+        {releaseYear && (
+          <span className="font-mono text-[9px] text-white/25 tracking-[0.15em] mb-1 leading-none">
+            {releaseYear}
+          </span>
+        )}
 
         {/* Title */}
         <div className="h-[2.6rem] mb-1.5 overflow-hidden">
@@ -117,7 +129,7 @@ const ProductCard = ({ product }: ProductCardProps) => {
                 : 'border-white/10 text-white/32 hover:border-[#C4A35B] hover:text-[#C4A35B]'
             }`}
           >
-            {isInCart ? <Check size={12} /> : <ShoppingBag size={12} />}
+            {isInCart ? <Check size={12} /> : <Plus size={12} />}
           </button>
         </div>
       </div>
