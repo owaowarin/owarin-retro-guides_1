@@ -28,8 +28,8 @@ import { toast } from 'sonner';
 
 /* ─── Shared input style ─── */
 const inputClass =
-  'w-full bg-secondary border border-border rounded px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary transition-colors';
-const labelClass = 'block text-[11px] tracking-[0.15em] text-muted-foreground uppercase mb-1.5';
+  'w-full bg-secondary border border-border px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary transition-colors';
+const labelClass = 'block text-[11px] tracking-[0.18em] text-muted-foreground uppercase mb-2';
 
 /* =========================================================================
    ADMIN ROOT
@@ -92,7 +92,7 @@ const Admin = () => {
                 if (!ok) toast.error('Invalid credentials');
                 else await useAppStore.getState().fetchOrders();
               }}
-              className="w-full py-2.5 rounded text-sm font-medium tracking-wider gold-gradient text-primary-foreground hover:opacity-90 transition-opacity"
+              className="w-full py-2.5 text-sm font-medium tracking-wider gold-gradient text-primary-foreground hover:opacity-90 transition-opacity"
             >
               Sign In
             </button>
@@ -119,7 +119,7 @@ const Admin = () => {
               {/* HOME — text header at top */}
               <a
                 href="/"
-                className="block px-3 py-2.5 text-sm tracking-[0.2em] text-muted-foreground hover:text-primary hover:bg-secondary rounded transition-colors mb-3 font-medium"
+                className="block px-3 py-2.5 text-sm tracking-[0.2em] text-muted-foreground hover:text-primary hover:bg-secondary transition-colors mb-3 font-medium"
               >
                 HOME
               </a>
@@ -132,7 +132,7 @@ const Admin = () => {
                   <button
                     key={label}
                     onClick={() => { setTab(index); setSidebarOpen(false); }}
-                    className={`w-full text-left px-3 py-2.5 text-sm tracking-wider rounded transition-colors ${tab === index ? 'text-primary bg-secondary' : 'text-secondary-foreground hover:text-primary hover:bg-secondary'}`}
+                    className={`w-full text-left px-3 py-2.5 text-sm tracking-wider transition-colors ${tab === index ? 'text-primary bg-secondary' : 'text-secondary-foreground hover:text-primary hover:bg-secondary'}`}
                   >
                     {label}
                   </button>
@@ -142,7 +142,7 @@ const Admin = () => {
                 <div>
                   <button
                     onClick={() => { setTab(3); setSidebarOpen(false); }}
-                    className={`w-full text-left px-3 py-2.5 text-sm tracking-wider rounded transition-colors ${tab === 3 ? 'text-primary bg-secondary' : 'text-secondary-foreground hover:text-primary hover:bg-secondary'}`}
+                    className={`w-full text-left px-3 py-2.5 text-sm tracking-wider transition-colors ${tab === 3 ? 'text-primary bg-secondary' : 'text-secondary-foreground hover:text-primary hover:bg-secondary'}`}
                   >
                     APPEARANCE
                   </button>
@@ -157,7 +157,7 @@ const Admin = () => {
                       <button
                         key={sub}
                         onClick={() => { setTab(3); setSubTab(i); setSidebarOpen(false); }}
-                        className={`w-full text-left px-3 py-1.5 text-[11px] tracking-[0.1em] rounded transition-colors ${
+                        className={`w-full text-left px-3 py-1.5 text-[11px] tracking-[0.12em] transition-colors ${
                           tab === 3 && subTab === i ? 'text-primary' : 'text-muted-foreground hover:text-primary'
                         }`}
                       >
@@ -169,7 +169,7 @@ const Admin = () => {
 
                 <button
                   onClick={() => { setTab(4); setSidebarOpen(false); }}
-                  className={`w-full text-left px-3 py-2.5 text-sm tracking-wider rounded transition-colors ${tab === 4 ? 'text-primary bg-secondary' : 'text-secondary-foreground hover:text-primary hover:bg-secondary'}`}
+                  className={`w-full text-left px-3 py-2.5 text-sm tracking-wider transition-colors ${tab === 4 ? 'text-primary bg-secondary' : 'text-secondary-foreground hover:text-primary hover:bg-secondary'}`}
                 >
                   ACCOUNT
                 </button>
@@ -265,7 +265,7 @@ const OrdersTab = ({ highlightOrderId, onClearHighlight }: { highlightOrderId?: 
   const OrderCard = ({ order: o }: { order: typeof orders[0] }) => (
     <div
       id={`order-${o.id}`}
-      className={`bg-card border rounded p-4 space-y-3 transition-all duration-500 ${
+      className={`bg-card border p-4 space-y-3 transition-all duration-500 ${
         o.id === highlightRef
           ? 'border-primary/60 ring-1 ring-primary/30 shadow-[0_0_12px_rgba(198,163,85,0.15)]'
           : 'border-border'
@@ -311,7 +311,7 @@ const OrdersTab = ({ highlightOrderId, onClearHighlight }: { highlightOrderId?: 
         </div>
         <button
           onClick={() => copyAddress(o)}
-          className="flex-shrink-0 text-[10px] text-muted-foreground hover:text-primary transition-colors border border-border rounded px-2 py-1 flex items-center gap-1"
+          className="flex-shrink-0 text-[10px] text-muted-foreground hover:text-primary transition-colors border border-border px-2 py-1 flex items-center gap-1"
         >
           <Upload size={10} /> Copy
         </button>
@@ -323,7 +323,7 @@ const OrdersTab = ({ highlightOrderId, onClearHighlight }: { highlightOrderId?: 
           <button
             key={s}
             onClick={() => updateOrderStatus(o.id, s)}
-            className={`flex-1 py-1 text-[10px] tracking-wider rounded transition-colors border ${
+            className={`flex-1 py-1 text-[10px] tracking-wider transition-colors border ${
               o.status === s
                 ? 'border-primary text-primary bg-primary/10'
                 : 'border-border text-muted-foreground hover:border-primary/50'
@@ -345,24 +345,24 @@ const OrdersTab = ({ highlightOrderId, onClearHighlight }: { highlightOrderId?: 
         <p className="text-[11px] tracking-[0.2em] text-muted-foreground uppercase">Orders</p>
         <div className="flex items-center gap-2">
           {/* Status filter toggle */}
-          <div className="inline-flex rounded-full border border-border bg-secondary/60 text-[11px]">
+          <div className="inline-flex border border-border bg-secondary/60 text-[11px]">
             <button
               onClick={() => setStatusFilter('Pending')}
-              className={`px-4 py-1.5 rounded-full tracking-[0.15em] transition-colors ${statusFilter === 'Pending' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'}`}
+              className={`px-4 py-1.5 tracking-[0.15em] transition-colors ${statusFilter === 'Pending' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'}`}
             >
               PENDING
             </button>
             <button
               onClick={() => setStatusFilter('Shipped')}
-              className={`px-4 py-1.5 rounded-full tracking-[0.15em] transition-colors ${statusFilter === 'Shipped' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'}`}
+              className={`px-4 py-1.5 tracking-[0.15em] transition-colors ${statusFilter === 'Shipped' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'}`}
             >
               SHIPPED
             </button>
           </div>
           {/* View toggle */}
-          <div className="inline-flex rounded-full border border-border bg-secondary/60 text-[11px]">
-            <button onClick={() => setView('list')} className={`px-2 py-1.5 rounded-full transition-colors ${view === 'list' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'}`}><List size={14} /></button>
-            <button onClick={() => setView('grid')} className={`px-2 py-1.5 rounded-full transition-colors ${view === 'grid' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'}`}><LayoutGrid size={14} /></button>
+          <div className="inline-flex border border-border bg-secondary/60 text-[11px]">
+            <button onClick={() => setView('list')} className={`px-2 py-1.5 transition-colors ${view === 'list' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'}`}><List size={14} /></button>
+            <button onClick={() => setView('grid')} className={`px-2 py-1.5 transition-colors ${view === 'grid' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'}`}><LayoutGrid size={14} /></button>
           </div>
         </div>
       </div>
@@ -706,7 +706,7 @@ const BulkUploadView = ({ onBack }: { onBack: () => void }) => {
       </div>
 
       {/* ── STEP 1: Upload Images ── */}
-      <div className="border border-border rounded-sm p-5 space-y-4">
+      <div className="border border-border p-5 space-y-4">
         <div className="flex items-center gap-2">
           <span className="text-[10px] bg-primary text-primary-foreground rounded-full w-5 h-5 flex items-center justify-center font-bold">1</span>
           <p className="text-sm font-medium tracking-wider text-foreground">UPLOAD IMAGE FOLDERS</p>
@@ -748,7 +748,7 @@ const BulkUploadView = ({ onBack }: { onBack: () => void }) => {
       </div>
 
       {/* ── STEP 2: Upload CSV ── */}
-      <div className="border border-border rounded-sm p-5 space-y-4">
+      <div className="border border-border p-5 space-y-4">
         <div className="flex items-center gap-2">
           <span className="text-[10px] bg-primary text-primary-foreground rounded-full w-5 h-5 flex items-center justify-center font-bold">2</span>
           <p className="text-sm font-medium tracking-wider text-foreground">UPLOAD CSV</p>
@@ -771,7 +771,7 @@ const BulkUploadView = ({ onBack }: { onBack: () => void }) => {
 
         {/* Preview table */}
         {rows.length > 0 && (
-          <div className="overflow-x-auto rounded border border-border">
+          <div className="overflow-x-auto border border-border">
             <table className="w-full text-xs">
               <thead>
                 <tr className="border-b border-border bg-background">
@@ -1203,7 +1203,7 @@ const ProductsTab = () => {
           </div>
         </div>
 
-        <button onClick={handleSave} className="w-full py-2.5 rounded text-sm font-medium tracking-wider gold-gradient text-primary-foreground hover:opacity-90 flex items-center justify-center gap-2">
+        <button onClick={handleSave} className="w-full py-2.5 text-sm font-medium tracking-wider gold-gradient text-primary-foreground hover:opacity-90 flex items-center justify-center gap-2">
           <Save size={16} /> Save Product
         </button>
       </div>
@@ -1215,11 +1215,11 @@ const ProductsTab = () => {
     <div className="space-y-3">
       <div className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-2 flex-wrap">
-          <div className="inline-flex rounded-full border border-border bg-secondary/60 text-[11px] whitespace-nowrap">
-            <button type="button" onClick={() => setStockFilter('available')} className={`px-3 py-1.5 rounded-full tracking-[0.15em] transition-colors ${stockFilter === 'available' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'}`}>AVAILABLE</button>
-            <button type="button" onClick={() => setStockFilter('soldout')} className={`px-3 py-1.5 rounded-full tracking-[0.15em] transition-colors ${stockFilter === 'soldout' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'}`}>SOLD OUT</button>
+          <div className="inline-flex border border-border bg-secondary/60 text-[11px] whitespace-nowrap">
+            <button type="button" onClick={() => setStockFilter('available')} className={`px-3 py-1.5 tracking-[0.15em] transition-colors ${stockFilter === 'available' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'}`}>AVAILABLE</button>
+            <button type="button" onClick={() => setStockFilter('soldout')} className={`px-3 py-1.5 tracking-[0.15em] transition-colors ${stockFilter === 'soldout' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'}`}>SOLD OUT</button>
           </div>
-          <button type="button" onClick={() => setStockFilter(stockFilter === 'hidden' ? 'available' : 'hidden')} className={`flex items-center gap-1 px-3 py-1.5 rounded-full border border-border text-[11px] tracking-[0.15em] transition-colors ${stockFilter === 'hidden' ? 'bg-primary text-primary-foreground border-primary' : 'bg-secondary/60 text-muted-foreground hover:text-foreground'}`}><EyeOff size={11} />HIDDEN</button>
+          <button type="button" onClick={() => setStockFilter(stockFilter === 'hidden' ? 'available' : 'hidden')} className={`flex items-center gap-1 px-3 py-1.5 border border-border text-[11px] tracking-[0.15em] transition-colors ${stockFilter === 'hidden' ? 'bg-primary text-primary-foreground border-primary' : 'bg-secondary/60 text-muted-foreground hover:text-foreground'}`}><EyeOff size={11} />HIDDEN</button>
         </div>
         <div className="flex-1 max-w-md mx-auto">
           <GlobalSearch
@@ -1235,15 +1235,15 @@ const ProductsTab = () => {
           />
         </div>
         <div className="flex items-center gap-2 whitespace-nowrap">
-          <div className="inline-flex rounded-full border border-border bg-secondary/60 text-[11px]">
-            <button type="button" onClick={() => setView('list')} className={`px-2 py-1.5 rounded-full transition-colors ${view === 'list' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'}`}><List size={14} /></button>
-            <button type="button" onClick={() => setView('grid')} className={`px-2 py-1.5 rounded-full transition-colors ${view === 'grid' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'}`}><LayoutGrid size={14} /></button>
+          <div className="inline-flex border border-border bg-secondary/60 text-[11px]">
+            <button type="button" onClick={() => setView('list')} className={`px-2 py-1.5 transition-colors ${view === 'list' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'}`}><List size={14} /></button>
+            <button type="button" onClick={() => setView('grid')} className={`px-2 py-1.5 transition-colors ${view === 'grid' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'}`}><LayoutGrid size={14} /></button>
           </div>
           {/* Select mode toggle */}
           <button
             type="button"
             onClick={() => { setSelectMode((v) => !v); setSelectedIds(new Set()); }}
-            className={`inline-flex items-center px-3 py-1.5 rounded-full border text-[11px] tracking-[0.15em] transition-colors ${selectMode ? 'bg-primary text-primary-foreground border-primary' : 'bg-secondary/60 border-border text-muted-foreground hover:text-foreground'}`}
+            className={`inline-flex items-center px-3 py-1.5 border text-[11px] tracking-[0.15em] transition-colors ${selectMode ? 'bg-primary text-primary-foreground border-primary' : 'bg-secondary/60 border-border text-muted-foreground hover:text-foreground'}`}
           >
             Select
           </button>
@@ -1251,7 +1251,7 @@ const ProductsTab = () => {
           <div className="relative">
             <button
               onClick={() => setShowAddMenu((v) => !v)}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-primary/60 bg-primary/10 text-[11px] tracking-[0.15em] text-primary hover:bg-primary hover:text-primary-foreground transition-colors"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 border border-primary/60 bg-primary/10 text-[11px] tracking-[0.15em] text-primary hover:bg-primary hover:text-primary-foreground transition-colors"
             >
               <Plus size={13} /> Add
               <ChevronDown size={11} className={`transition-transform duration-200 ${showAddMenu ? 'rotate-180' : ''}`} />
@@ -1259,7 +1259,7 @@ const ProductsTab = () => {
             {showAddMenu && (
               <>
                 <div className="fixed inset-0 z-10" onClick={() => setShowAddMenu(false)} />
-                <div className="absolute right-0 top-full mt-1.5 z-20 bg-card border border-border rounded shadow-lg overflow-hidden min-w-[140px]">
+                <div className="absolute right-0 top-full mt-1.5 z-20 bg-card border border-border shadow-lg overflow-hidden min-w-[140px]">
                   <button
                     onClick={() => { setShowAddMenu(false); startNew(); }}
                     className="w-full text-left px-4 py-2.5 text-foreground hover:bg-secondary transition-colors flex items-center gap-2.5"
@@ -1290,7 +1290,7 @@ const ProductsTab = () => {
 
       {/* Multi-select action bar */}
       {selectMode && filteredByStock.length > 0 && (
-        <div className="flex items-center gap-3 p-2.5 bg-card border border-border rounded animate-fade-in">
+        <div className="flex items-center gap-3 p-2.5 bg-card border border-border animate-fade-in">
           <input
             type="checkbox"
             checked={filteredByStock.length > 0 && filteredByStock.every((p) => selectedIds.has(p.id))}
@@ -1303,7 +1303,7 @@ const ProductsTab = () => {
           {selectedIds.size > 0 && (
             <button
               onClick={deleteSelected}
-              className="flex items-center gap-1.5 text-xs text-destructive border border-destructive/40 rounded px-3 py-1.5 hover:bg-destructive/10 transition-colors"
+              className="flex items-center gap-1.5 text-xs text-destructive border border-destructive/40 px-3 py-1.5 hover:bg-destructive/10 transition-colors"
             >
               <Trash2 size={13} /> Delete {selectedIds.size}
             </button>
@@ -1322,7 +1322,7 @@ const ProductsTab = () => {
       {view === 'list' && filteredByStock.map((p, index) => (
         <div
           key={p.id}
-          className={`flex items-center gap-3 p-3 bg-card border rounded transition-colors select-none ${selectedIds.has(p.id) ? 'border-primary/60 bg-primary/5' : 'border-border'}`}
+          className={`flex items-center gap-3 p-3 bg-card border transition-colors select-none ${selectedIds.has(p.id) ? 'border-primary/60 bg-primary/5' : 'border-border'}`}
           onMouseDown={() => handleMouseDown(p.id, index)}
           onMouseEnter={() => handleMouseEnter(p.id, index)}
         >
@@ -1364,7 +1364,7 @@ const ProductsTab = () => {
           {filteredByStock.map((p, index) => (
             <div
               key={p.id}
-              className={`group bg-card border rounded overflow-hidden transition-colors select-none ${selectedIds.has(p.id) ? 'border-primary/60 ring-1 ring-primary/30' : 'border-border'}`}
+              className={`group bg-card border overflow-hidden transition-colors select-none ${selectedIds.has(p.id) ? 'border-primary/60 ring-1 ring-primary/30' : 'border-border'}`}
               onClick={selectMode ? () => toggleSelect(p.id, index) : undefined}
               onMouseDown={() => handleMouseDown(p.id, index)}
               onMouseEnter={() => handleMouseEnter(p.id, index)}

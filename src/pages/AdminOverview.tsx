@@ -7,8 +7,8 @@ import { TrendingUp, Package, ChevronRight, X, Calendar } from 'lucide-react';
 // ─── Sub-components ────────────────────────────────────────────────────────
 
 const StatCard = ({ icon: Icon, label, value, sub }: { icon: React.ElementType; label: string; value: string | number; sub?: string }) => (
-  <div className="bg-card border border-border rounded p-4 flex items-start gap-3">
-    <div className="w-8 h-8 rounded bg-primary/10 flex items-center justify-center flex-shrink-0">
+  <div className="bg-card border border-border p-4 flex items-start gap-3">
+    <div className="w-8 h-8 bg-primary/10 flex items-center justify-center flex-shrink-0">
       <Icon size={16} className="text-primary" />
     </div>
     <div className="min-w-0">
@@ -20,7 +20,7 @@ const StatCard = ({ icon: Icon, label, value, sub }: { icon: React.ElementType; 
 );
 
 const MiniMap = () => (
-  <div className="relative w-full h-48 bg-secondary/40 border border-border rounded overflow-hidden flex items-center justify-center">
+  <div className="relative w-full h-48 bg-secondary/40 border border-border overflow-hidden flex items-center justify-center">
     {/* World map SVG placeholder with dot markers */}
     <svg viewBox="0 0 800 400" className="w-full h-full opacity-20 absolute inset-0">
       <rect width="800" height="400" fill="transparent" />
@@ -181,7 +181,7 @@ const AdminOverview = ({ onNavigateToOrders }: AdminOverviewProps) => {
       </div>
 
       {/* ── Sales Report + Daily Order Lookup (combined card) ──────── */}
-      <div className="bg-card border border-border rounded overflow-hidden">
+      <div className="bg-card border border-border overflow-hidden">
         {/* Header row */}
         <div className="px-4 py-3 border-b border-border flex items-center justify-between gap-3 flex-wrap">
           <h3 className="text-[11px] tracking-[0.2em] text-muted-foreground uppercase">Sales Report</h3>
@@ -193,11 +193,11 @@ const AdminOverview = ({ onNavigateToOrders }: AdminOverviewProps) => {
             </div>
             {/* Back / Forward */}
             <div className="flex items-center gap-1">
-              <button onClick={() => setSalesOffset((p) => p + 1)} className="w-6 h-6 flex items-center justify-center rounded border border-border text-muted-foreground hover:text-primary hover:border-primary transition-colors text-xs">‹</button>
-              <button onClick={() => setSalesOffset((p) => Math.max(0, p - 1))} disabled={salesOffset === 0} className="w-6 h-6 flex items-center justify-center rounded border border-border text-muted-foreground hover:text-primary hover:border-primary transition-colors text-xs disabled:opacity-30">›</button>
+              <button onClick={() => setSalesOffset((p) => p + 1)} className="w-6 h-6 flex items-center justify-center border border-border text-muted-foreground hover:text-primary hover:border-primary transition-colors text-xs">‹</button>
+              <button onClick={() => setSalesOffset((p) => Math.max(0, p - 1))} disabled={salesOffset === 0} className="w-6 h-6 flex items-center justify-center border border-border text-muted-foreground hover:text-primary hover:border-primary transition-colors text-xs disabled:opacity-30">›</button>
             </div>
             {/* Export */}
-            <button onClick={exportCSV} className="text-[10px] tracking-wider text-muted-foreground hover:text-primary border border-border rounded px-2.5 py-1 transition-colors flex items-center gap-1">
+            <button onClick={exportCSV} className="text-[10px] tracking-wider text-muted-foreground hover:text-primary border border-border px-2.5 py-1 transition-colors flex items-center gap-1">
               <ChevronRight size={10} className="rotate-90" /> EXPORT CSV
             </button>
           </div>
@@ -241,7 +241,7 @@ const AdminOverview = ({ onNavigateToOrders }: AdminOverviewProps) => {
               type="date"
               value={filterDate}
               onChange={(e) => setFilterDate(e.target.value)}
-              className="text-[11px] bg-secondary border border-border rounded px-2 py-1 text-foreground focus:outline-none focus:border-primary transition-colors"
+              className="text-[11px] bg-secondary border border-border px-2 py-1 text-foreground focus:outline-none focus:border-primary transition-colors"
             />
           </div>
         </div>
@@ -337,7 +337,7 @@ const AdminOverview = ({ onNavigateToOrders }: AdminOverviewProps) => {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
 
         {/* Product Performance */}
-        <div className="lg:col-span-2 bg-card border border-border rounded overflow-hidden">
+        <div className="lg:col-span-2 bg-card border border-border overflow-hidden">
           <div className="px-4 py-3 border-b border-border">
             <h3 className="text-[11px] tracking-[0.2em] text-muted-foreground uppercase">Product Performance</h3>
           </div>
@@ -388,7 +388,7 @@ const AdminOverview = ({ onNavigateToOrders }: AdminOverviewProps) => {
         </div>
 
         {/* Search Queries */}
-        <div className="bg-card border border-border rounded overflow-hidden flex flex-col">
+        <div className="bg-card border border-border overflow-hidden flex flex-col">
           <div className="px-4 py-3 border-b border-border">
             <h3 className="text-[11px] tracking-[0.2em] text-muted-foreground uppercase">Top Search Queries</h3>
           </div>

@@ -11,13 +11,12 @@ interface ProductCardProps {
 const ProductCard = ({ product }: ProductCardProps) => {
   const { items, toggleItem } = useCartStore();
   const discountRate = useAppStore((s) => s.discountRate);
-  void discountRate; // discount disabled
+  void discountRate;
 
   const isSoldOut = product.statusTag === 'soldOut';
   const isInCart = items.some((i) => i.productId === product.id);
   const price = product.price;
 
-  // Release year (d-department DNA)
   const releaseYear = product.releaseDate
     ? new Date(product.releaseDate).getFullYear()
     : null;
@@ -46,7 +45,7 @@ const ProductCard = ({ product }: ProductCardProps) => {
   return (
     <Link to={`/product/${product.id}`} className="group flex flex-col h-full">
 
-      {/* ── Image — 1:1 square ── */}
+      {/* Image — 1:1 */}
       <div className="relative aspect-square overflow-hidden bg-[#111114] mb-2.5">
         <img
           src={product.frontImage}
@@ -62,26 +61,26 @@ const ProductCard = ({ product }: ProductCardProps) => {
         />
         {isSoldOut && (
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-            <span className="font-mono text-[8px] tracking-[0.4em] uppercase text-[#C4A35B]/65 border border-[#C4A35B]/22 px-3 py-1.5">
+            <span className="font-mono text-[9px] tracking-[0.4em] uppercase text-[#C4A35B]/65 border border-[#C4A35B]/22 px-3 py-1.5">
               SOLD OUT
             </span>
           </div>
         )}
       </div>
 
-      {/* ── Info ── */}
+      {/* Info */}
       <div className="flex flex-col flex-grow">
 
         {/* Release Year */}
         {releaseYear && (
-          <span className="font-mono text-[9px] text-white/25 tracking-[0.15em] mb-1 leading-none">
+          <span className="font-mono text-[9px] sm:text-[10px] text-white/25 tracking-[0.15em] mb-1 leading-none">
             {releaseYear}
           </span>
         )}
 
         {/* Title */}
-        <div className="h-[2.6rem] mb-1.5 overflow-hidden">
-          <h3 className="text-[13px] font-light text-white/72 leading-snug group-hover:text-white/92 transition-colors tracking-[0.01em]">
+        <div className="h-[2.7rem] mb-1.5 overflow-hidden">
+          <h3 className="text-[13px] sm:text-[13px] font-light text-white/72 leading-snug group-hover:text-white/92 transition-colors tracking-[0.01em]">
             {shortTitle}
             {isTruncated && <span className="text-[9px] text-white/22 ml-1">···</span>}
           </h3>
@@ -92,7 +91,7 @@ const ProductCard = ({ product }: ProductCardProps) => {
           <div className="flex flex-wrap gap-1 mb-1.5">
             {product.platform.split('/').map((s) => s.trim()).filter(Boolean).map((plat) => (
               <span key={plat}
-                className="font-mono text-[8px] tracking-[0.12em] uppercase text-white/28 border border-white/7 px-1.5 py-0.5 leading-none">
+                className="font-mono text-[9px] tracking-[0.12em] uppercase text-white/30 border border-white/8 px-1.5 py-0.5 leading-none">
                 {plat}
               </span>
             ))}
@@ -104,7 +103,7 @@ const ProductCard = ({ product }: ProductCardProps) => {
           <div className="flex flex-wrap gap-1 mb-2 min-h-[1.2rem]">
             {genreTags.map((g) => (
               <span key={g}
-                className="font-mono text-[8px] tracking-[0.1em] uppercase text-[#C4A35B]/50 border border-[#C4A35B]/16 px-1.5 py-0.5 leading-none">
+                className="font-mono text-[9px] tracking-[0.1em] uppercase text-[#C4A35B]/52 border border-[#C4A35B]/18 px-1.5 py-0.5 leading-none">
                 {g}
               </span>
             ))}
@@ -113,7 +112,7 @@ const ProductCard = ({ product }: ProductCardProps) => {
 
         {/* Price + Cart */}
         <div className="flex items-center justify-between mt-auto pt-1">
-          <span className="font-mono text-[12px] font-bold text-[#D4AF37] lining-nums">
+          <span className="font-mono text-[12px] sm:text-[13px] font-bold text-[#D4AF37] lining-nums">
             {price.toLocaleString()}
             <span className="text-[9px] font-normal text-white/20 tracking-[0.1em] ml-1">THB</span>
           </span>
@@ -129,7 +128,7 @@ const ProductCard = ({ product }: ProductCardProps) => {
                 : 'border-white/10 text-white/32 hover:border-[#C4A35B] hover:text-[#C4A35B]'
             }`}
           >
-            {isInCart ? <Check size={12} /> : <Plus size={12} />}
+            {isInCart ? <Check size={11} /> : <Plus size={11} />}
           </button>
         </div>
       </div>

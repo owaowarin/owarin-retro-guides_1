@@ -21,7 +21,6 @@ const AllProducts = () => {
   const toggleSection = (key: string) =>
     setExpandedSections((prev) => ({ ...prev, [key]: !prev[key] }));
 
-  // Sync search with URL param
   useEffect(() => {
     const q = searchParams.get('search') ?? '';
     setSearch(q);
@@ -33,7 +32,6 @@ const AllProducts = () => {
   const selectedGenre = searchParams.get('genre') || '';
   const selectedPublisher = searchParams.get('publisher') || '';
 
-  /* ── Live inventory lists ── */
   const livePublishers = useMemo(() => {
     const set = new Set(
       products
@@ -52,7 +50,6 @@ const AllProducts = () => {
     return Array.from(set).filter(Boolean).sort();
   }, [products]);
 
-  /* ── Filtered & sorted products ── */
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
     let f = products.filter((p) => {
@@ -76,17 +73,15 @@ const AllProducts = () => {
     const sorted = [...f];
     if (sort === 'priceAsc') sorted.sort((a, b) => a.price - b.price);
     else if (sort === 'priceDesc') sorted.sort((a, b) => b.price - a.price);
-    else sorted.reverse(); // newArrivals = last added first
+    else sorted.reverse();
     return sorted;
   }, [products, search, selectedPlatform, selectedGenre, selectedPublisher, sort]);
 
   const totalPages = Math.ceil(filtered.length / ITEMS_PER_PAGE);
   const paginated = filtered.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE);
 
-  /* ── Reset page on filter change ── */
   useEffect(() => { setPage(1); }, [search, selectedPlatform, selectedGenre, selectedPublisher, sort]);
 
-  /* ── Close drawer on outside click ── */
   useEffect(() => {
     const handler = (e: MouseEvent) => {
       if (drawerRef.current && !drawerRef.current.contains(e.target as Node)) {
@@ -121,7 +116,6 @@ const AllProducts = () => {
       .map((p) => ({ id: p.id, label: p.title, subtitle: `${p.platform} · ${p.genre}` }));
   }, [products, search]);
 
-  /* ── Pagination page numbers ── */
   const pageNumbers = useMemo(() => {
     if (totalPages <= 7) return Array.from({ length: totalPages }, (_, i) => i + 1);
     const nums: (number | '...')[] = [1];
@@ -132,15 +126,10 @@ const AllProducts = () => {
     return nums;
   }, [page, totalPages]);
 
-  // Header = 48px (row1) + 36px (platform bar) = 84px
-  // Search bar = 84px–124px (40px height)
-  // Control bar = 124px–168px (44px height)
-  // Inner main pt: accounts for search + control below App's pt-[84px]
-
   return (
     <div className="min-h-screen bg-background">
 
-      {/* ── Search Bar — fixed below new 84px header ── */}
+      {/* Search Bar — fixed top-[84px] (below 2-row header) */}
       <div className="fixed top-[84px] left-0 right-0 z-40 bg-background/95 backdrop-blur-sm border-b border-border px-4 py-2">
         <GlobalSearch
           value={search}
@@ -152,34 +141,28 @@ const AllProducts = () => {
         />
       </div>
 
-      {/* ── Control Bar ── */}
-      <div
-        className="fixed top-[124px] left-0 right-0 z-30 px-4 py-2 pointer-events-none"
-        style={{ background: 'transparent', boxShadow: 'none', border: 'none' }}
-      >
+      {/* Control Bar — fixed top-[124px] */}
+      <div className="fixed top-[124px] left-0 right-0 z-30 px-4 py-2.5 pointer-events-none"
+        style={{ background: 'transparent', boxShadow: 'none', border: 'none' }}>
         <div className="max-w-screen-2xl mx-auto flex items-center justify-between gap-2">
 
-          {/* Result count */}
-          <p className="pointer-events-auto font-mono text-[9px] tracking-[0.2em] uppercase text-muted-foreground/70">
+          <p className="pointer-events-auto font-mono text-[10px] tracking-[0.22em] uppercase text-white/38">
             {filtered.length} <span>results</span>
           </p>
 
-          {/* Right cluster */}
           <div className="flex items-center gap-2 pointer-events-auto">
-
-            {/* FILTER button */}
             <button
               onClick={() => setDrawerOpen(true)}
-              className={`flex items-center gap-1.5 px-2.5 py-1.5 border font-mono text-[9px] tracking-[0.18em] transition-colors ${
+              className={`flex items-center gap-1.5 px-3 py-1.5 border font-mono text-[10px] tracking-[0.2em] uppercase transition-colors ${
                 selectedGenre || selectedPublisher
                   ? 'border-[#C4A35B]/60 text-[#C4A35B]'
-                  : 'border-white/10 text-white/35 hover:text-white/60 hover:border-white/20'
+                  : 'border-white/10 text-white/38 hover:text-white/65 hover:border-white/22'
               }`}
             >
               <SlidersHorizontal size={11} />
-              <span className="hidden sm:inline">FILTER</span>
+              <span>FILTER</span>
               {(selectedGenre || selectedPublisher) && (
-                <span className="w-3.5 h-3.5 bg-[#C4A35B] text-[#0c0c0e] text-[8px] flex items-center justify-center font-mono font-bold">
+                <span className="w-3.5 h-3.5 bg-[#C4A35B] text-[#0c0c0e] text-[8px] flex items-center justify-center font-bold">
                   {[selectedGenre, selectedPublisher].filter(Boolean).length}
                 </span>
               )}
@@ -188,38 +171,38 @@ const AllProducts = () => {
         </div>
       </div>
 
-      {/* ── Main Content ── */}
-      {/* App.tsx provides pt-[84px]; we add pt-[88px] to clear search+control bars */}
+      {/* Main — pt-[88px] accounts for search (40px) + control (44px) bars on top of App's pt-[84px] */}
       <main className="pt-[88px] px-4 pb-20 max-w-screen-2xl mx-auto">
 
-        {/* ── Active filter chips ── */}
+        {/* Active filter chips */}
         {hasFilters && (
-          <div className="flex flex-wrap items-center gap-2 mb-4">
+          <div className="flex flex-wrap items-center gap-2 mb-5">
             {selectedPlatform && (
-              <span className="font-mono inline-flex items-center gap-1.5 border border-[#C4A35B]/40 text-[#C4A35B] text-[9px] tracking-[0.12em] uppercase px-2.5 py-1">
+              <span className="font-mono inline-flex items-center gap-1.5 border border-[#C4A35B]/40 text-[#C4A35B] text-[10px] tracking-[0.12em] uppercase px-2.5 py-1">
                 {selectedPlatform}
                 <button onClick={() => setFilter('platform', '')}><X size={10} /></button>
               </span>
             )}
             {selectedGenre && (
-              <span className="font-mono inline-flex items-center gap-1.5 border border-[#C4A35B]/40 text-[#C4A35B] text-[9px] tracking-[0.12em] uppercase px-2.5 py-1">
+              <span className="font-mono inline-flex items-center gap-1.5 border border-[#C4A35B]/40 text-[#C4A35B] text-[10px] tracking-[0.12em] uppercase px-2.5 py-1">
                 {selectedGenre}
                 <button onClick={() => setFilter('genre', '')}><X size={10} /></button>
               </span>
             )}
             {selectedPublisher && (
-              <span className="font-mono inline-flex items-center gap-1.5 border border-[#C4A35B]/40 text-[#C4A35B] text-[9px] tracking-[0.12em] uppercase px-2.5 py-1">
+              <span className="font-mono inline-flex items-center gap-1.5 border border-[#C4A35B]/40 text-[#C4A35B] text-[10px] tracking-[0.12em] uppercase px-2.5 py-1">
                 {selectedPublisher}
                 <button onClick={() => setFilter('publisher', '')}><X size={10} /></button>
               </span>
             )}
-            <button onClick={clearAll} className="font-mono text-[9px] tracking-[0.12em] uppercase text-white/30 hover:text-[#C4A35B] transition-colors ml-1">
+            <button onClick={clearAll}
+              className="font-mono text-[10px] tracking-[0.12em] uppercase text-white/28 hover:text-[#C4A35B] transition-colors ml-1">
               Clear all
             </button>
           </div>
         )}
 
-        {/* ── Product Grid ── */}
+        {/* Product Grid */}
         {paginated.length > 0 ? (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 md:gap-4">
             {paginated.map((product) => (
@@ -228,45 +211,37 @@ const AllProducts = () => {
           </div>
         ) : (
           <div className="text-center mt-24">
-            <p className="font-mono text-[9px] tracking-[0.25em] uppercase text-white/20">
+            <p className="font-mono text-[10px] tracking-[0.25em] uppercase text-white/20">
               No results found
             </p>
             {hasFilters && (
-              <button onClick={clearAll} className="mt-3 font-mono text-[9px] tracking-[0.15em] uppercase text-[#C4A35B]/60 hover:text-[#C4A35B] transition-colors">
+              <button onClick={clearAll}
+                className="mt-3 font-mono text-[10px] tracking-[0.15em] uppercase text-[#C4A35B]/60 hover:text-[#C4A35B] transition-colors">
                 Clear filters
               </button>
             )}
           </div>
         )}
 
-        {/* ── Pagination ── */}
+        {/* Pagination */}
         {totalPages > 1 && (
           <nav className="mt-16 flex items-center justify-center gap-0">
-            <button
-              onClick={() => setPage(1)}
-              disabled={page === 1}
-              className="px-4 py-2 text-[10px] tracking-[0.25em] font-light text-muted-foreground hover:text-primary disabled:opacity-20 transition-colors"
-            >
+            <button onClick={() => setPage(1)} disabled={page === 1}
+              className="px-4 py-2 font-mono text-[10px] tracking-[0.25em] text-white/30 hover:text-primary disabled:opacity-20 transition-colors">
               FIRST
             </button>
-            <button
-              onClick={() => setPage((p) => Math.max(1, p - 1))}
-              disabled={page === 1}
-              className="px-3 py-2 text-sm text-muted-foreground hover:text-primary disabled:opacity-20 transition-colors"
-            >
+            <button onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page === 1}
+              className="px-3 py-2 text-sm text-white/30 hover:text-primary disabled:opacity-20 transition-colors">
               ‹
             </button>
             {pageNumbers.map((n, i) =>
               n === '...' ? (
-                <span key={`e-${i}`} className="px-3 py-2 text-xs text-muted-foreground/40 tracking-widest">···</span>
+                <span key={`e-${i}`} className="px-3 py-2 text-xs text-white/20 tracking-widest">···</span>
               ) : (
-                <button
-                  key={n}
-                  onClick={() => setPage(n as number)}
-                  className={`relative px-3.5 py-2 text-xs tracking-[0.15em] font-light transition-colors ${
-                    page === n ? 'text-primary' : 'text-muted-foreground hover:text-foreground'
-                  }`}
-                >
+                <button key={n} onClick={() => setPage(n as number)}
+                  className={`relative px-3.5 py-2 font-mono text-[11px] tracking-[0.15em] transition-colors ${
+                    page === n ? 'text-primary' : 'text-white/30 hover:text-white/70'
+                  }`}>
                   {n}
                   {page === n && (
                     <span className="absolute bottom-0.5 left-1/2 -translate-x-1/2 w-1 h-1 bg-primary" />
@@ -274,43 +249,34 @@ const AllProducts = () => {
                 </button>
               )
             )}
-            <button
-              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-              disabled={page === totalPages}
-              className="px-3 py-2 text-sm text-muted-foreground hover:text-primary disabled:opacity-20 transition-colors"
-            >
+            <button onClick={() => setPage((p) => Math.min(totalPages, p + 1))} disabled={page === totalPages}
+              className="px-3 py-2 text-sm text-white/30 hover:text-primary disabled:opacity-20 transition-colors">
               ›
             </button>
-            <button
-              onClick={() => setPage(totalPages)}
-              disabled={page === totalPages}
-              className="px-4 py-2 text-[10px] tracking-[0.25em] font-light text-muted-foreground hover:text-primary disabled:opacity-20 transition-colors"
-            >
+            <button onClick={() => setPage(totalPages)} disabled={page === totalPages}
+              className="px-4 py-2 font-mono text-[10px] tracking-[0.25em] text-white/30 hover:text-primary disabled:opacity-20 transition-colors">
               LAST
             </button>
           </nav>
         )}
 
         {filtered.length > 0 && (
-          <p className="text-center text-[10px] tracking-[0.15em] text-muted-foreground/50 mt-3">
+          <p className="text-center font-mono text-[10px] tracking-[0.15em] text-white/25 mt-3">
             {(page - 1) * ITEMS_PER_PAGE + 1}–{Math.min(page * ITEMS_PER_PAGE, filtered.length)} OF {filtered.length}
           </p>
         )}
       </main>
 
-      {/* ── Filter Drawer ── */}
+      {/* Filter Drawer */}
       {drawerOpen && (
         <>
           <div className="fixed inset-0 bg-background/60 backdrop-blur-sm z-50" onClick={() => setDrawerOpen(false)} />
-          <div
-            ref={drawerRef}
+          <div ref={drawerRef}
             className="fixed right-0 top-0 bottom-0 w-72 bg-card border-l border-border z-50 overflow-y-auto flex flex-col"
-            style={{ animation: 'slideInRight 0.2s ease' }}
-          >
-            {/* Drawer header */}
+            style={{ animation: 'slideInRight 0.2s ease' }}>
             <div className="flex items-center justify-between px-5 py-4 border-b border-border">
-              <span className="font-mono text-[10px] tracking-[0.25em] text-white/40 uppercase">Filters</span>
-              <button onClick={() => setDrawerOpen(false)} className="text-muted-foreground hover:text-foreground">
+              <span className="font-mono text-[10px] tracking-[0.28em] text-white/40 uppercase">Filters</span>
+              <button onClick={() => setDrawerOpen(false)} className="text-white/35 hover:text-white/70 transition-colors">
                 <X size={18} />
               </button>
             </div>
@@ -319,10 +285,8 @@ const AllProducts = () => {
 
               {/* SORT */}
               <div className="border-b border-border">
-                <button
-                  onClick={() => toggleSection('sort')}
-                  className="w-full flex items-center justify-between px-5 py-4 font-mono text-[10px] tracking-[0.25em] text-[#D4AF37] uppercase hover:text-primary transition-colors"
-                >
+                <button onClick={() => toggleSection('sort')}
+                  className="w-full flex items-center justify-between px-5 py-4 font-mono text-[10px] tracking-[0.28em] text-[#D4AF37] uppercase hover:text-primary transition-colors">
                   SORT
                   <ChevronDown size={14} className={`transition-transform duration-200 ${expandedSections.sort ? 'rotate-180' : ''}`} />
                 </button>
@@ -330,16 +294,13 @@ const AllProducts = () => {
                   <div className="px-5 pb-4 space-y-0.5">
                     {([
                       ['newArrivals', 'NEW ARRIVAL'],
-                      ['priceAsc', 'PRICE: LOW TO HIGH'],
-                      ['priceDesc', 'PRICE: HIGH TO LOW'],
+                      ['priceAsc', 'PRICE: LOW → HIGH'],
+                      ['priceDesc', 'PRICE: HIGH → LOW'],
                     ] as [SortOption, string][]).map(([val, label]) => (
-                      <button
-                        key={val}
-                        onClick={() => setSort(val)}
+                      <button key={val} onClick={() => setSort(val)}
                         className={`w-full text-left px-2 py-2 font-mono text-[10px] tracking-[0.15em] transition-colors ${
-                          sort === val ? 'text-primary' : 'text-muted-foreground hover:text-foreground'
-                        }`}
-                      >
+                          sort === val ? 'text-primary' : 'text-white/35 hover:text-white/70'
+                        }`}>
                         {sort === val && <span className="mr-2 text-primary">·</span>}
                         {label}
                       </button>
@@ -351,10 +312,8 @@ const AllProducts = () => {
               {/* GENRE */}
               {liveGenres.length > 0 && (
                 <div className="border-b border-border">
-                  <button
-                    onClick={() => toggleSection('genre')}
-                    className="w-full flex items-center justify-between px-5 py-4 font-mono text-[10px] tracking-[0.25em] text-[#D4AF37] uppercase hover:text-primary transition-colors"
-                  >
+                  <button onClick={() => toggleSection('genre')}
+                    className="w-full flex items-center justify-between px-5 py-4 font-mono text-[10px] tracking-[0.28em] text-[#D4AF37] uppercase hover:text-primary transition-colors">
                     <span className="flex items-center gap-2">
                       GENRE
                       {selectedGenre && <span className="w-1.5 h-1.5 bg-[#C4A35B] inline-block" />}
@@ -364,13 +323,11 @@ const AllProducts = () => {
                   {expandedSections.genre && (
                     <div className="px-5 pb-4 space-y-0.5">
                       {liveGenres.map((g) => (
-                        <button
-                          key={g}
+                        <button key={g}
                           onClick={() => setFilter('genre', selectedGenre === g ? '' : g)}
                           className={`w-full text-left px-2 py-2 font-mono text-[10px] tracking-[0.15em] transition-colors ${
-                            selectedGenre === g ? 'text-primary' : 'text-muted-foreground hover:text-foreground'
-                          }`}
-                        >
+                            selectedGenre === g ? 'text-primary' : 'text-white/35 hover:text-white/70'
+                          }`}>
                           {selectedGenre === g && <span className="mr-2 text-primary">·</span>}
                           {g}
                         </button>
@@ -383,10 +340,8 @@ const AllProducts = () => {
               {/* PUBLISHER */}
               {livePublishers.length > 0 && (
                 <div className="border-b border-border">
-                  <button
-                    onClick={() => toggleSection('publisher')}
-                    className="w-full flex items-center justify-between px-5 py-4 font-mono text-[10px] tracking-[0.25em] text-[#D4AF37] uppercase hover:text-primary transition-colors"
-                  >
+                  <button onClick={() => toggleSection('publisher')}
+                    className="w-full flex items-center justify-between px-5 py-4 font-mono text-[10px] tracking-[0.28em] text-[#D4AF37] uppercase hover:text-primary transition-colors">
                     <span className="flex items-center gap-2">
                       PUBLISHER
                       {selectedPublisher && <span className="w-1.5 h-1.5 bg-[#C4A35B] inline-block" />}
@@ -396,13 +351,11 @@ const AllProducts = () => {
                   {expandedSections.publisher && (
                     <div className="px-5 pb-4 space-y-0.5">
                       {livePublishers.map((pub) => (
-                        <button
-                          key={pub}
+                        <button key={pub}
                           onClick={() => setFilter('publisher', selectedPublisher === pub ? '' : pub)}
                           className={`w-full text-left px-2 py-2 font-mono text-[10px] tracking-[0.15em] transition-colors ${
-                            selectedPublisher === pub ? 'text-primary' : 'text-muted-foreground hover:text-foreground'
-                          }`}
-                        >
+                            selectedPublisher === pub ? 'text-primary' : 'text-white/35 hover:text-white/70'
+                          }`}>
                           {selectedPublisher === pub && <span className="mr-2 text-primary">·</span>}
                           {pub}
                         </button>
@@ -413,12 +366,10 @@ const AllProducts = () => {
               )}
             </div>
 
-            {/* Clear all */}
             <div className="px-5 py-4 border-t border-border">
               <button
                 onClick={() => { clearAll(); setDrawerOpen(false); }}
-                className="w-full font-mono text-[10px] tracking-[0.2em] text-white/30 hover:text-[#C4A35B] transition-colors text-center uppercase"
-              >
+                className="w-full font-mono text-[10px] tracking-[0.22em] text-white/28 hover:text-[#C4A35B] transition-colors text-center uppercase">
                 Clear all
               </button>
             </div>
