@@ -1,58 +1,54 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { ArrowLeft, RotateCcw, Info, ShoppingBag, Check } from 'lucide-react';
+import { Info, ShoppingBag, Check } from 'lucide-react';
 import { useProductStore } from '@/stores/useProductStore';
 import { useCartStore } from '@/stores/useCartStore';
 import { useAppStore } from '@/stores/useAppStore';
 import { supabase } from '@/lib/supabase';
+
+/* ── Inject Cormorant Garamond once ── */
+const injectFont = () => {
+  if (document.getElementById('cormorant-font')) return;
+  const link = document.createElement('link');
+  link.id = 'cormorant-font';
+  link.rel = 'stylesheet';
+  link.href = 'https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300&display=swap';
+  document.head.appendChild(link);
+};
 
 const ProductDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const product = useProductStore((s) => s.products.find((p) => p.id === id && !p.hidden));
   const conditionGrades = useAppStore((s) => s.conditionGrades);
+  const discountRate = useAppStore((s) => s.discountRate);
   const { items, addItem } = useCartStore();
+
   const [showBack, setShowBack] = useState(false);
   const [showConditionTooltip, setShowConditionTooltip] = useState(false);
-  const [backVisible, setBackVisible] = useState(true);
-  const lastScrollY = useRef(0);
 
-  // Track product view
+  useEffect(() => { injectFont(); }, []);
+
   useEffect(() => {
     if (!id) return;
     supabase.from('product_views').insert({ product_id: id });
   }, [id]);
 
-  useEffect(() => {
-    const handler = () => {
-      const currentY = window.scrollY;
-      if (currentY < 60) {
-        setBackVisible(true);
-      } else {
-        setBackVisible(currentY < lastScrollY.current);
-      }
-      lastScrollY.current = currentY;
-    };
-    window.addEventListener('scroll', handler, { passive: true });
-    return () => window.removeEventListener('scroll', handler);
-  }, []);
-
   const isInCart = items.some((i) => i.productId === id);
   const isSoldOut = product?.statusTag === 'soldOut';
-  const discountRate = useAppStore((s) => s.discountRate);
+
+  // Discount disabled
+  const hasDiscount = false;
+  const discountedPrice = product?.price ?? 0;
+  void discountRate; void hasDiscount;
 
   if (!product) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
-        <p className="text-muted-foreground">Product not found.</p>
+        <p className="font-mono text-[10px] tracking-[0.3em] uppercase text-white/25">Product Not Found</p>
       </div>
     );
   }
-
-  const hasDiscount = false; // discountRate — disabled
-  const discountedPrice = product.price;
-  const discountPercent = 0;
-  void discountRate;
 
   const handleAdd = () => {
     if (!isInCart && !isSoldOut) {
@@ -66,100 +62,102 @@ const ProductDetail = () => {
     }
   };
 
-  /* Format release date as MONTH DD, YYYY (e.g. FEBRUARY 28, 2026) */
   const formatReleaseDate = (dateStr: string): string => {
     if (!dateStr) return '—';
     const date = new Date(dateStr);
     if (isNaN(date.getTime())) return dateStr;
-    return date.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }).toUpperCase();
+    return date.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
   };
 
   const gradeInfo = conditionGrades.find((g) => g.code === product.condition);
-  const conditionLabel = gradeInfo ? `${gradeInfo.code} — ${gradeInfo.name}` : product.condition;
-
-  /* Display title as-is without 「」 wrapping */
   const displayTitle = product.title.replace(/^「|」$/g, '');
+
+  /* ── shared class shortcuts ── */
+  const monoLabel = 'font-mono text-[8px] tracking-[0.22em] uppercase text-white/30 pt-0.5';
+  const tagBase = 'font-mono text-[9px] tracking-[0.12em] uppercase border px-2.5 py-1 transition-colors duration-150 cursor-pointer no-underline inline-block leading-none';
+  const tagDefault = `${tagBase} border-white/10 text-white/40 hover:border-[#C4A35B]/50 hover:text-[#C4A35B]`;
+  const tagGold   = `${tagBase} border-[#C4A35B]/25 text-[#C4A35B]/65 hover:border-[#C4A35B]/60 hover:text-[#C4A35B]`;
 
   return (
     <div className="min-h-screen bg-background">
 
-      {/* Sticky Back Button — visible on scroll up, hidden on scroll down */}
-      <div className={`sticky top-16 z-30 transition-all duration-300 pointer-events-none ${backVisible ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-2'}`}>
-        <div className="pointer-events-auto inline-block py-2">
-          <button
-            onClick={() => window.history.length > 1 ? navigate(-1) : navigate('/')}
-            className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-primary transition-colors bg-background/80 backdrop-blur-sm px-3 py-1.5 rounded-full border border-border/50"
-          >
-            <ArrowLeft size={14} /> Back
-          </button>
-        </div>
+      {/* ── Back bar ── */}
+      <div className="border-b border-white/5 px-6 lg:px-10 py-3">
+        <button
+          onClick={() => window.history.length > 1 ? navigate(-1) : navigate('/')}
+          className="font-mono text-[9px] tracking-[0.22em] uppercase text-white/25 hover:text-white/60 transition-colors"
+        >
+          ← Back
+        </button>
       </div>
 
-      <main className="pt-2 px-4 pb-24 max-w-5xl mx-auto">
+      {/* ── 2-col layout ── */}
+      <div className="max-w-5xl mx-auto px-6 lg:px-10">
+        <div className="flex flex-col lg:flex-row">
 
-        {/* Desktop: Left/Right split, Mobile: stacked */}
-        <div className="flex flex-col lg:flex-row gap-8">
-          {/* LEFT: Image */}
-          <div className="lg:w-1/2">
-            <div className="relative aspect-[3/4] rounded overflow-hidden bg-secondary border border-border">
+          {/* ═══ LEFT: Image — sticky on desktop ═══ */}
+          <div className="lg:w-[52%] lg:sticky lg:top-[106px] lg:self-start pt-8 pb-8 lg:pr-10">
+
+            <div className="relative aspect-[3/4] overflow-hidden bg-[#111114]">
               <img
                 src={showBack ? product.backImage : product.frontImage}
                 alt={product.title}
-                className="w-full h-full object-cover transition-opacity duration-300"
+                className={`w-full h-full object-cover transition-all duration-500 hover:scale-[1.025] ${
+                  isSoldOut ? 'brightness-[0.45] grayscale-[50%]' : 'brightness-[0.93]'
+                }`}
               />
+              {isSoldOut && (
+                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                  <span className="font-mono text-[10px] tracking-[0.45em] uppercase text-[#C4A35B]/75 border border-[#C4A35B]/30 px-5 py-2.5">
+                    SOLD OUT
+                  </span>
+                </div>
+              )}
             </div>
+
             <button
               onClick={() => setShowBack(!showBack)}
-              className="mt-3 w-full bg-card border border-border rounded px-4 py-2 text-xs text-foreground hover:text-primary hover:border-primary transition-colors flex items-center justify-center gap-2"
+              className="mt-2 w-full bg-transparent border border-white/7 text-white/25 font-mono text-[8px] tracking-[0.22em] uppercase py-2.5 hover:border-[#C4A35B]/35 hover:text-[#C4A35B] transition-colors"
             >
-              <RotateCcw size={14} />
-              {showBack ? 'FLIP TO FRONT' : '⟲ FLIP TO BACK'}
+              {showBack ? 'Flip to Front' : '⟲ Flip to Back'}
             </button>
           </div>
 
-          {/* RIGHT: Info */}
-          <div className="lg:w-1/2 flex flex-col">
-            {/* Title */}
-            <h1 className="font-display text-2xl lg:text-3xl text-foreground leading-tight mb-4">
-              {displayTitle}
-            </h1>
+          {/* ═══ RIGHT: Info ═══ */}
+          <div className="lg:w-[48%] lg:border-l lg:border-white/6 pt-8 pb-20 lg:pl-10 flex flex-col">
 
-            {/* Platform tags */}
-            <div className="flex flex-wrap gap-1.5 mb-2">
-              {product.platform
-                ? product.platform.split('/').map((s) => s.trim()).filter(Boolean).map((plat) => (
-                    <Link key={plat} to={`/all-products?platform=${encodeURIComponent(plat)}`}
-                      className="text-[11px] font-medium text-foreground/80 tracking-[0.1em] uppercase bg-secondary border border-border rounded px-2 py-0.5 hover:border-primary hover:text-primary transition-colors cursor-pointer">
-                      {plat}
-                    </Link>
-                  ))
-                : null}
-            </div>
-
-            {/* Condition Line */}
-            <div className="relative flex items-center gap-2 mb-6">
-              <p className="text-[11px] text-muted-foreground tracking-wider opacity-60">
-                CONDITION: {conditionLabel}
-              </p>
+            {/* Condition */}
+            <div className="relative flex items-center gap-3 mb-5">
+              <span className="font-mono text-[9px] tracking-[0.18em] uppercase text-[#C4A35B] border border-[#C4A35B]/30 px-2.5 py-1 leading-none">
+                {product.condition}
+              </span>
+              {gradeInfo && (
+                <span className="font-mono text-[9px] tracking-[0.12em] uppercase text-white/22">
+                  {gradeInfo.name}
+                </span>
+              )}
               <button
                 onClick={() => setShowConditionTooltip(!showConditionTooltip)}
-                className="text-primary hover:text-gold-bright transition-colors"
+                className="ml-auto text-white/18 hover:text-[#C4A35B] transition-colors"
               >
-                <Info size={13} />
+                <Info size={12} />
               </button>
+
               {showConditionTooltip && (
-                <div className="absolute top-full left-0 mt-2 z-30 w-72 bg-card border border-border rounded-lg shadow-lg p-4 animate-fade-in">
-                  <div className="flex justify-between items-center mb-3">
-                    <h3 className="text-xs font-medium text-primary tracking-wider">CONDITION GUIDE</h3>
-                    <button onClick={() => setShowConditionTooltip(false)} className="text-muted-foreground hover:text-foreground text-xs">✕</button>
+                <div className="absolute top-full right-0 mt-2 z-30 w-72 bg-[#0f0f12] border border-white/8 shadow-2xl p-5">
+                  <div className="flex justify-between items-center mb-4">
+                    <span className="font-mono text-[9px] tracking-[0.25em] uppercase text-[#C4A35B]">Condition Guide</span>
+                    <button onClick={() => setShowConditionTooltip(false)} className="font-mono text-[10px] text-white/20 hover:text-white/50">✕</button>
                   </div>
-                  <div className="space-y-3">
+                  <div className="space-y-3.5">
                     {conditionGrades.map((g) => (
-                      <div key={g.id} className={`flex gap-2 ${g.code === product.condition ? 'opacity-100' : 'opacity-60'}`}>
-                        <span className="w-6 h-6 rounded border border-primary flex items-center justify-center text-xs font-semibold text-primary flex-shrink-0">{g.code}</span>
+                      <div key={g.id} className={`flex gap-3 transition-opacity ${g.code === product.condition ? 'opacity-100' : 'opacity-30'}`}>
+                        <span className="w-6 h-6 border border-[#C4A35B]/35 flex items-center justify-center font-mono text-[10px] text-[#C4A35B] flex-shrink-0">
+                          {g.code}
+                        </span>
                         <div>
-                          <p className="text-xs text-foreground font-medium">{g.name}</p>
-                          <p className="text-[11px] text-muted-foreground leading-relaxed">{g.description}</p>
+                          <p className="font-mono text-[8px] tracking-[0.15em] uppercase text-white/50 mb-0.5">{g.name}</p>
+                          <p className="text-[11px] text-white/28 leading-relaxed">{g.description}</p>
                         </div>
                       </div>
                     ))}
@@ -168,119 +166,132 @@ const ProductDetail = () => {
               )}
             </div>
 
+            {/* Title — Cormorant Garamond */}
+            <h1
+              style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontWeight: 300, lineHeight: 1.1 }}
+              className="text-[30px] lg:text-[36px] text-white/88 mb-4 tracking-[0.01em]"
+            >
+              {displayTitle}
+            </h1>
+
+            {/* Platform tags */}
+            {product.platform && (
+              <div className="flex flex-wrap gap-1.5 mb-6">
+                {product.platform.split('/').map((s) => s.trim()).filter(Boolean).map((plat) => (
+                  <Link key={plat} to={`/all-products?platform=${encodeURIComponent(plat)}`} className={tagDefault}>
+                    {plat}
+                  </Link>
+                ))}
+              </div>
+            )}
+
+            {/* Gold accent divider */}
+            <div className="w-8 h-px bg-[#C4A35B] opacity-35 mb-6" />
+
             {/* Price */}
-            <div className="mb-6">
-              {hasDiscount ? (
-                <div className="flex items-baseline gap-2">
-                  <p className="text-2xl font-display text-primary lining-nums">{discountedPrice.toLocaleString()} THB</p>
-                  <p className="text-sm text-muted-foreground line-through lining-nums">{product.price.toLocaleString()}</p>
-                  <span className="text-xs bg-primary/20 text-primary px-1.5 py-0.5 rounded">-{discountPercent}%</span>
-                </div>
-              ) : (
-                <p className="text-2xl font-display text-primary lining-nums">{product.price.toLocaleString()} THB</p>
-              )}
+            <div className="flex items-baseline gap-2.5 mb-7">
+              <span className="font-mono text-[22px] font-bold text-[#D4AF37] tracking-tight lining-nums">
+                {discountedPrice.toLocaleString()}
+              </span>
+              <span className="font-mono text-[10px] text-white/22 tracking-[0.18em]">THB</span>
             </div>
 
-            {/* Add to Cart / Sold Out Button */}
+            {/* CTA Button */}
             <button
               onClick={handleAdd}
               disabled={isInCart || isSoldOut}
-              className={`w-full py-3 mb-10 rounded text-sm font-medium tracking-wider transition-all flex items-center justify-center gap-2 ${
+              className={`w-full py-4 mb-10 font-mono text-[9px] tracking-[0.3em] uppercase transition-all duration-200 flex items-center justify-center gap-2 ${
                 isSoldOut
-                  ? 'bg-secondary text-muted-foreground border border-border cursor-not-allowed'
+                  ? 'border border-white/7 text-white/13 cursor-not-allowed'
                   : isInCart
-                  ? 'bg-secondary text-muted-foreground border border-border cursor-default'
-                  : 'gold-gradient text-primary-foreground hover:opacity-90'
+                  ? 'border border-white/7 text-white/18 cursor-default'
+                  : 'border border-[#C4A35B] text-[#C4A35B] hover:bg-[#C4A35B] hover:text-[#0c0c0e]'
               }`}
             >
-              {isSoldOut ? (
-                <>SOLD OUT</>
-              ) : isInCart ? (
-                <><Check size={16} /> IN BAG</>
-              ) : (
-                <><ShoppingBag size={16} /> ADD TO CART</>
-              )}
+              {isSoldOut
+                ? 'Sold Out'
+                : isInCart
+                ? <><Check size={12} /> In Bag</>
+                : <><ShoppingBag size={12} /> Add to Cart</>
+              }
             </button>
 
-            {/* Synopsis Section */}
-            <div className="border-t border-border pt-6 mt-6">
-              <h2 className="text-[14px] tracking-[0.2em] text-[#D4AF37] uppercase mb-4 font-medium">SYNOPSIS</h2>
-              <p className="text-sm text-secondary-foreground leading-relaxed">{product.synopsis}</p>
-            </div>
-
-            {/* About Section */}
-            <div className="border-t border-border pt-6 mt-6">
-              <h2 className="text-[14px] tracking-[0.2em] text-[#C6A355] uppercase mb-5 font-medium">About</h2>
-
+            {/* ── ABOUT ── */}
+            <div className="mb-8">
+              <SectionHeading>About</SectionHeading>
               <div className="divide-y divide-white/5">
 
+                <MetaRow label="Release">
+                  <span className="text-[13px] text-white/52 font-light">{formatReleaseDate(product.releaseDate)}</span>
+                </MetaRow>
 
-                {/* Release Dates */}
-                <div className="grid grid-cols-[100px_1fr] items-start gap-4 py-3">
-                  <span className="text-[10px] text-white/40 uppercase tracking-[0.12em] font-medium pt-0.5">RELEASE DATES</span>
-                  <span className="text-sm text-foreground">{formatReleaseDate(product.releaseDate)}</span>
-                </div>
+                <MetaRow label="Language">
+                  <span className="text-[13px] text-white/52 font-light">{product.language || '—'}</span>
+                </MetaRow>
 
-                {/* Language */}
-                <div className="grid grid-cols-[100px_1fr] items-start gap-4 py-3">
-                  <span className="text-[10px] text-white/40 uppercase tracking-[0.12em] font-medium pt-0.5">Language</span>
-                  <span className="text-sm text-foreground">{product.language || '—'}</span>
-                </div>
+                {product.developer && (
+                  <MetaRow label="Developer">
+                    <div className="flex flex-wrap gap-1.5">
+                      {product.developer.split(',').map((d) => d.trim()).filter(Boolean).map((d) => (
+                        <Link key={d} to={`/all-products?search=${encodeURIComponent(d)}`} className={tagDefault}>{d}</Link>
+                      ))}
+                    </div>
+                  </MetaRow>
+                )}
 
-                {/* Developers */}
-                <div className="grid grid-cols-[100px_1fr] items-start gap-4 py-3">
-                  <span className="text-[10px] text-white/40 uppercase tracking-[0.12em] font-medium pt-0.5">Developer</span>
-                  <div className="flex flex-wrap gap-1.5">
-                    {product.developer
-                      ? product.developer.split(',').map((d) => d.trim()).filter(Boolean).map((d) => (
-                          <Link key={d} to={`/all-products?search=${encodeURIComponent(d)}`}
-                            className="text-xs text-foreground border border-white/10 bg-white/5 rounded-sm px-2 py-0.5 hover:border-primary/50 hover:text-primary transition-colors cursor-pointer">
-                            {d}
-                          </Link>
-                        ))
-                      : <span className="text-sm text-foreground">—</span>
-                    }
-                  </div>
-                </div>
+                {product.publisher && (
+                  <MetaRow label="Publisher">
+                    <div className="flex flex-wrap gap-1.5">
+                      {product.publisher.split(',').map((p) => p.trim()).filter(Boolean).map((p) => (
+                        <Link key={p} to={`/all-products?publisher=${encodeURIComponent(p)}`} className={tagDefault}>{p}</Link>
+                      ))}
+                    </div>
+                  </MetaRow>
+                )}
 
-                {/* Publishers */}
-                <div className="grid grid-cols-[100px_1fr] items-start gap-4 py-3">
-                  <span className="text-[10px] text-white/40 uppercase tracking-[0.12em] font-medium pt-0.5">Publisher</span>
-                  <div className="flex flex-wrap gap-1.5">
-                    {product.publisher
-                      ? product.publisher.split(',').map((p) => p.trim()).filter(Boolean).map((p) => (
-                          <Link key={p} to={`/all-products?publisher=${encodeURIComponent(p)}`}
-                            className="text-xs text-foreground border border-white/10 bg-white/5 rounded-sm px-2 py-0.5 hover:border-primary/50 hover:text-primary transition-colors cursor-pointer">
-                            {p}
-                          </Link>
-                        ))
-                      : <span className="text-sm text-foreground">—</span>
-                    }
-                  </div>
-                </div>
+                {product.genre && (
+                  <MetaRow label="Genre">
+                    <div className="flex flex-wrap gap-1.5">
+                      {product.genre.split(',').map((g) => g.trim()).filter(Boolean).map((g) => (
+                        <Link key={g} to={`/all-products?genre=${encodeURIComponent(g)}`} className={tagGold}>{g}</Link>
+                      ))}
+                    </div>
+                  </MetaRow>
+                )}
 
-                {/* Genres */}
-                <div className="grid grid-cols-[100px_1fr] items-start gap-4 py-3">
-                  <span className="text-[10px] text-white/40 uppercase tracking-[0.12em] font-medium pt-0.5">Genre</span>
-                  <div className="flex flex-wrap gap-1.5">
-                    {product.genre
-                      ? product.genre.split(',').map((g) => g.trim()).filter(Boolean).map((g) => (
-                          <Link key={g} to={`/all-products?genre=${encodeURIComponent(g)}`}
-                            className="text-xs text-[#C6A355] border border-[#C6A355]/20 bg-[#C6A355]/5 rounded-sm px-2 py-0.5 hover:border-[#C6A355]/60 hover:bg-[#C6A355]/10 transition-colors cursor-pointer">
-                            {g}
-                          </Link>
-                        ))
-                      : <span className="text-sm text-foreground">—</span>
-                    }
-                  </div>
-                </div>
               </div>
             </div>
+
+            {/* ── SYNOPSIS ── */}
+            {product.synopsis && (
+              <div>
+                <SectionHeading>Synopsis</SectionHeading>
+                <p className="text-[13.5px] text-white/40 leading-[1.95] font-light tracking-[0.01em]">
+                  {product.synopsis}
+                </p>
+              </div>
+            )}
+
           </div>
         </div>
-      </main>
+      </div>
     </div>
   );
 };
+
+/* ── Sub-components ── */
+const SectionHeading = ({ children }: { children: React.ReactNode }) => (
+  <div className="flex items-center gap-3 mb-5">
+    <span className="font-mono text-[9px] tracking-[0.28em] uppercase text-[#C4A35B]">{children}</span>
+    <div className="flex-1 h-px bg-white/6" />
+  </div>
+);
+
+const MetaRow = ({ label, children }: { label: string; children: React.ReactNode }) => (
+  <div className="grid grid-cols-[82px_1fr] gap-4 py-3 items-start">
+    <span className="font-mono text-[8px] tracking-[0.22em] uppercase text-white/28 pt-1">{label}</span>
+    <div>{children}</div>
+  </div>
+);
 
 export default ProductDetail;
