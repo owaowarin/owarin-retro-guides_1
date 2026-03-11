@@ -3,7 +3,7 @@ import { Link, useNavigate, useLocation, useSearchParams } from 'react-router-do
 import { useCartStore } from '@/stores/useCartStore';
 import { useAppStore } from '@/stores/useAppStore';
 import { useProductStore } from '@/stores/useProductStore';
-import { useMemo } from 'react';
+import { useMemo, useRef, useEffect } from 'react';
 
 interface HeaderProps {
   onMenuToggle: () => void;
@@ -29,10 +29,30 @@ const Header = ({ onMenuToggle, onCartOpen }: HeaderProps) => {
   const location = useLocation();
   const [searchParams] = useSearchParams();
   const activePlatform = searchParams.get('platform') || '';
+  const platformBarRef = useRef<HTMLDivElement>(null);
 
   const handleCartClick = () => {
     if (onCartOpen) onCartOpen();
     else openCart();
+  };
+
+  /* ── Non-passive wheel → horizontal scroll on desktop ── */
+  useEffect(() => {
+    const el = platformBarRef.current;
+    if (!el) return;
+    const handler = (e: WheelEvent) => {
+      if (e.deltaY === 0) return;
+      e.preventDefault();
+      el.scrollLeft += e.deltaY * 1.5;
+    };
+    el.addEventListener('wheel', handler, { passive: false });
+    return () => el.removeEventListener('wheel', handler);
+  }, []);
+
+  const scrollPlatformBar = (dir: 'left' | 'right') => {
+    const el = platformBarRef.current;
+    if (!el) return;
+    el.scrollBy({ left: dir === 'right' ? 120 : -120, behavior: 'smooth' });
   };
 
   const platforms = useMemo(() => {
@@ -91,12 +111,21 @@ const Header = ({ onMenuToggle, onCartOpen }: HeaderProps) => {
       </div>
 
       {/* ── Row 2: Platform bar ── */}
-      <div
-        className="border-t border-white/5 overflow-x-auto scrollbar-hide"
-        style={{ touchAction: 'pan-x' }}
-        onWheel={(e) => { if (e.deltaY === 0) return; e.preventDefault(); e.currentTarget.scrollLeft += e.deltaY; }}
-      >
-        <div className="flex items-stretch px-2 h-9 w-max min-w-full">
+      <div className="border-t border-white/5 relative flex items-stretch">
+        {/* ‹ arrow */}
+        <button
+          onClick={() => scrollPlatformBar('left')}
+          className="flex-shrink-0 w-7 flex items-center justify-center border-r border-white/5 text-white/25 hover:text-[#C4A35B] transition-colors font-mono text-sm"
+          aria-label="Scroll left"
+        >‹</button>
+
+        {/* Scrollable strip */}
+        <div
+          ref={platformBarRef}
+          className="flex-1 overflow-x-auto scrollbar-hide"
+          style={{ touchAction: 'pan-x', WebkitOverflowScrolling: 'touch' } as React.CSSProperties}
+        >
+          <div className="flex items-stretch h-9 w-max min-w-full px-1">
           <Link to="/all-products"
             className={`font-mono text-[10px] tracking-[0.2em] uppercase px-3 flex items-center whitespace-nowrap transition-colors border-b-[1.5px] ${
               isAllProductsPage && !activePlatform
@@ -116,7 +145,15 @@ const Header = ({ onMenuToggle, onCartOpen }: HeaderProps) => {
               {platform}
             </Link>
           ))}
+          </div>
         </div>
+
+        {/* › arrow */}
+        <button
+          onClick={() => scrollPlatformBar('right')}
+          className="flex-shrink-0 w-7 flex items-center justify-center border-l border-white/5 text-white/25 hover:text-[#C4A35B] transition-colors font-mono text-sm"
+          aria-label="Scroll right"
+        >›</button>
       </div>
     </header>
   );
