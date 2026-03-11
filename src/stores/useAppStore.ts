@@ -65,7 +65,7 @@ interface AppStore {
   setStoreSubtext: (subtext: string) => Promise<void>;
   setLogoUrl: (url: string) => Promise<void>;
   setLogoSize: (size: number) => Promise<void>;
-  setStoreInfo: (info: { headerName: string; heroName: string; storeTagline: string; storeSubtext: string; logoUrl: string; logoSize: number; heroFontSize: number; taglineFontSize: number; subtextFontSize: number; discountRate: number }) => Promise<void>;
+  setStoreInfo: (info: { headerName: string; heroName: string; storeTagline: string; storeSubtext: string; logoUrl: string; logoSize: number; heroFontSize: number; taglineFontSize: number; subtextFontSize: number }) => Promise<void>;
   setBankInfo: (info: { bankName: string; bankAccount: string; bankHolder: string }) => Promise<void>;
   setQrCodeUrl: (url: string) => Promise<void>;
   setCustomerNote: (note: string) => Promise<void>;
@@ -211,9 +211,9 @@ export const useAppStore = create<AppStore>((set, get) => ({
     await saveSetting('store', { headerName: s.headerName, heroName: s.heroName, storeName: s.storeName, storeTagline: s.storeTagline, storeSubtext: s.storeSubtext, logoUrl: s.logoUrl, logoSize: size });
   },
   setStoreInfo: async (info) => {
-    set({ headerName: info.headerName, heroName: info.heroName, storeTagline: info.storeTagline, storeSubtext: info.storeSubtext, logoUrl: info.logoUrl, logoSize: info.logoSize, heroFontSize: info.heroFontSize, taglineFontSize: info.taglineFontSize, subtextFontSize: info.subtextFontSize, discountRate: info.discountRate });
+    set({ headerName: info.headerName, heroName: info.heroName, storeTagline: info.storeTagline, storeSubtext: info.storeSubtext, logoUrl: info.logoUrl, logoSize: info.logoSize, heroFontSize: info.heroFontSize, taglineFontSize: info.taglineFontSize, subtextFontSize: info.subtextFontSize, discountRate: 0 });
     const s = get();
-    await saveSetting('store', { headerName: info.headerName, heroName: info.heroName, storeName: s.storeName, storeTagline: info.storeTagline, storeSubtext: info.storeSubtext, logoUrl: info.logoUrl, logoSize: info.logoSize, heroFontSize: info.heroFontSize, taglineFontSize: info.taglineFontSize, subtextFontSize: info.subtextFontSize, discountRate: info.discountRate });
+    await saveSetting('store', { headerName: info.headerName, heroName: info.heroName, storeName: s.storeName, storeTagline: info.storeTagline, storeSubtext: info.storeSubtext, logoUrl: info.logoUrl, logoSize: info.logoSize, heroFontSize: info.heroFontSize, taglineFontSize: info.taglineFontSize, subtextFontSize: info.subtextFontSize, discountRate: 0 });
   },
   setBankInfo: async (info) => {
     set(info);
