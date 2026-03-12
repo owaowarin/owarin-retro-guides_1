@@ -100,6 +100,35 @@ async function saveSetting(key: string, value: unknown) {
   await supabase.from('settings').update({ value }).eq('key', key);
 }
 
+// helper: build full store payload from current state (avoids partial overwrites)
+function buildStorePayload(s: AppStore) {
+  return {
+    headerName: s.headerName,
+    heroName: s.heroName,
+    storeName: s.storeName,
+    storeTagline: s.storeTagline,
+    storeSubtext: s.storeSubtext,
+    logoUrl: s.logoUrl,
+    logoSize: s.logoSize,
+    heroFontSize: s.heroFontSize,
+    taglineFontSize: s.taglineFontSize,
+    subtextFontSize: s.subtextFontSize,
+    discountRate: s.discountRate,
+  };
+}
+
+// helper: build full payment payload from current state
+function buildPaymentPayload(s: AppStore) {
+  return {
+    bankName: s.bankName,
+    bankAccount: s.bankAccount,
+    bankHolder: s.bankHolder,
+    qrCodeUrl: s.qrCodeUrl,
+    customerNote: s.customerNote,
+    shippingFee: s.shippingFee,
+  };
+}
+
 export const useAppStore = create<AppStore>((set, get) => ({
   storeName: 'OWARIN',
   headerName: 'OWARIN',
@@ -179,65 +208,66 @@ export const useAppStore = create<AppStore>((set, get) => ({
 
   setHeaderName: async (name) => {
     set({ headerName: name });
-    const s = get();
-    await saveSetting('store', { headerName: name, heroName: s.heroName, storeName: s.storeName, storeTagline: s.storeTagline, storeSubtext: s.storeSubtext, logoUrl: s.logoUrl, logoSize: s.logoSize });
+    await saveSetting('store', buildStorePayload({ ...get(), headerName: name }));
   },
   setHeroName: async (name) => {
     set({ heroName: name });
-    const s = get();
-    await saveSetting('store', { headerName: s.headerName, heroName: name, storeName: s.storeName, storeTagline: s.storeTagline, storeSubtext: s.storeSubtext, logoUrl: s.logoUrl, logoSize: s.logoSize });
+    await saveSetting('store', buildStorePayload({ ...get(), heroName: name }));
   },
   setStoreName: async (name) => {
     set({ storeName: name });
-    const s = get();
-    await saveSetting('store', { headerName: s.headerName, heroName: s.heroName, storeName: name, storeTagline: s.storeTagline, storeSubtext: s.storeSubtext, logoUrl: s.logoUrl, logoSize: s.logoSize });
+    await saveSetting('store', buildStorePayload({ ...get(), storeName: name }));
   },
   setStoreTagline: async (tagline) => {
     set({ storeTagline: tagline });
-    const s = get();
-    await saveSetting('store', { headerName: s.headerName, heroName: s.heroName, storeName: s.storeName, storeTagline: tagline, storeSubtext: s.storeSubtext, logoUrl: s.logoUrl, logoSize: s.logoSize });
+    await saveSetting('store', buildStorePayload({ ...get(), storeTagline: tagline }));
   },
   setStoreSubtext: async (subtext) => {
     set({ storeSubtext: subtext });
-    const s = get();
-    await saveSetting('store', { headerName: s.headerName, heroName: s.heroName, storeName: s.storeName, storeTagline: s.storeTagline, storeSubtext: subtext, logoUrl: s.logoUrl, logoSize: s.logoSize });
+    await saveSetting('store', buildStorePayload({ ...get(), storeSubtext: subtext }));
   },
   setLogoUrl: async (url) => {
     set({ logoUrl: url });
-    const s = get();
-    await saveSetting('store', { headerName: s.headerName, heroName: s.heroName, storeName: s.storeName, storeTagline: s.storeTagline, storeSubtext: s.storeSubtext, logoUrl: url, logoSize: s.logoSize });
+    await saveSetting('store', buildStorePayload({ ...get(), logoUrl: url }));
   },
   setLogoSize: async (size) => {
     set({ logoSize: size });
-    const s = get();
-    await saveSetting('store', { headerName: s.headerName, heroName: s.heroName, storeName: s.storeName, storeTagline: s.storeTagline, storeSubtext: s.storeSubtext, logoUrl: s.logoUrl, logoSize: size });
+    await saveSetting('store', buildStorePayload({ ...get(), logoSize: size }));
   },
   setStoreInfo: async (info) => {
-    set({ headerName: info.headerName, heroName: info.heroName, storeTagline: info.storeTagline, storeSubtext: info.storeSubtext, logoUrl: info.logoUrl, logoSize: info.logoSize, heroFontSize: info.heroFontSize, taglineFontSize: info.taglineFontSize, subtextFontSize: info.subtextFontSize, discountRate: 0 });
-    const s = get();
-    await saveSetting('store', { headerName: info.headerName, heroName: info.heroName, storeName: s.storeName, storeTagline: info.storeTagline, storeSubtext: info.storeSubtext, logoUrl: info.logoUrl, logoSize: info.logoSize, heroFontSize: info.heroFontSize, taglineFontSize: info.taglineFontSize, subtextFontSize: info.subtextFontSize, discountRate: 0 });
+    // Preserve existing discountRate — do NOT reset to 0
+    const currentDiscount = get().discountRate;
+    set({
+      headerName: info.headerName,
+      heroName: info.heroName,
+      storeTagline: info.storeTagline,
+      storeSubtext: info.storeSubtext,
+      logoUrl: info.logoUrl,
+      logoSize: info.logoSize,
+      heroFontSize: info.heroFontSize,
+      taglineFontSize: info.taglineFontSize,
+      subtextFontSize: info.subtextFontSize,
+    });
+    await saveSetting('store', buildStorePayload({ ...get(), discountRate: currentDiscount }));
   },
   setBankInfo: async (info) => {
     set(info);
-    const s = get();
-    await saveSetting('payment', { ...info, qrCodeUrl: s.qrCodeUrl, customerNote: s.customerNote });
+    await saveSetting('payment', buildPaymentPayload({ ...get(), ...info }));
   },
   setQrCodeUrl: async (url) => {
     set({ qrCodeUrl: url });
-    const s = get();
-    await saveSetting('payment', { bankName: s.bankName, bankAccount: s.bankAccount, bankHolder: s.bankHolder, qrCodeUrl: url, customerNote: s.customerNote });
+    await saveSetting('payment', buildPaymentPayload({ ...get(), qrCodeUrl: url }));
   },
   setCustomerNote: async (note) => {
     set({ customerNote: note });
-    const s = get();
-    await saveSetting('payment', { bankName: s.bankName, bankAccount: s.bankAccount, bankHolder: s.bankHolder, qrCodeUrl: s.qrCodeUrl, customerNote: note, shippingFee: s.shippingFee });
+    await saveSetting('payment', buildPaymentPayload({ ...get(), customerNote: note }));
   },
   setShippingFee: async (fee) => {
     set({ shippingFee: fee });
     appConfig.shippingFee = fee;
-    const s = get();
-    await saveSetting('payment', { bankName: s.bankName, bankAccount: s.bankAccount, bankHolder: s.bankHolder, qrCodeUrl: s.qrCodeUrl, customerNote: s.customerNote, shippingFee: fee });
+    await saveSetting('payment', buildPaymentPayload({ ...get(), shippingFee: fee }));
   },
+  // NOTE: thankYouText is kept for backwards compat but thankYouConfig.thankYouText is canonical
   setThankYouText: (text) => set({ thankYouText: text }),
   setThankYouConfig: async (config) => {
     const updated = { ...get().thankYouConfig, ...config };
@@ -269,8 +299,14 @@ export const useAppStore = create<AppStore>((set, get) => ({
   },
 
   deleteOrder: async (id) => {
-    await supabase.from('orders').delete().eq('id', id);
+    const prev = get().orders;
     set((s) => ({ orders: s.orders.filter((o) => o.id !== id) }));
+    const { error } = await supabase.from('orders').delete().eq('id', id);
+    if (error) {
+      // Revert on failure
+      set({ orders: prev });
+      console.error('[deleteOrder] Failed:', error.message);
+    }
   },
 
   loginAdmin: async (email, password) => {

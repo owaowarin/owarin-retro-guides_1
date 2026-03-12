@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
 import { useAppStore } from '@/stores/useAppStore';
 import { toast } from 'sonner';
@@ -6,9 +7,17 @@ const ThankYou = () => {
   const [params] = useSearchParams();
   const orderId = params.get('orderId') || '';
   const orders = useAppStore((s) => s.orders);
+  const fetchOrders = useAppStore((s) => s.fetchOrders);
   const headerName = useAppStore((s) => s.headerName);
   const cfg = useAppStore((s) => s.thankYouConfig);
   const order = orders.find((o) => o.id === orderId);
+
+  // If orders not loaded (e.g. page refresh), fetch them
+  useEffect(() => {
+    if (orderId && orders.length === 0) {
+      fetchOrders();
+    }
+  }, [orderId]);
 
   const handleCopy = () => {
     if (!order) {

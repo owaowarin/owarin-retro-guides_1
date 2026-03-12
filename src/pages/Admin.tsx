@@ -40,7 +40,7 @@ const Admin = () => {
   const [tab, setTab] = useState(0);
   const [subTab, setSubTab] = useState(0);
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [loginForm, setLoginForm] = useState({ email: '', password: '', remember: false });
+  const [loginForm, setLoginForm] = useState({ email: '', password: '' });
   const [highlightOrderId, setHighlightOrderId] = useState<string | undefined>();
   const [sessionChecked, setSessionChecked] = useState(false);
 
@@ -83,10 +83,6 @@ const Admin = () => {
               onChange={(e) => setLoginForm((f) => ({ ...f, password: e.target.value }))}
               className={inputClass}
             />
-            <label className="flex items-center gap-2 text-sm text-muted-foreground">
-              <input type="checkbox" checked={loginForm.remember} onChange={(e) => setLoginForm((f) => ({ ...f, remember: e.target.checked }))} className="accent-primary" />
-              Remember me
-            </label>
             <button
               onClick={async () => {
                 const ok = await app.loginAdmin(loginForm.email, loginForm.password);
@@ -229,20 +225,19 @@ const OrdersTab = ({ highlightOrderId, onClearHighlight }: { highlightOrderId?: 
   const { orders, updateOrderStatus, deleteOrder } = useAppStore();
   
   const [view, setView] = useState<'list' | 'grid'>('list');
-  const [statusFilter, setStatusFilter] = useState<'Paid' | 'Shipped'>('Paid');
+  const [statusFilter, setStatusFilter] = useState<'Pending' | 'Paid' | 'Shipped'>('Paid');
 
-  // Auto-switch to correct tab and scroll to highlighted order
+  // Auto-switch to correct tab and scroll to highlighted order — use useEffect (side effect, not computation)
   const highlightRef = useMemo(() => highlightOrderId, [highlightOrderId]);
 
-  // Find the order's status to switch to correct tab
   const highlightedOrder = orders.find((o) => o.id === highlightOrderId);
-  // Switch to Shipped tab if the order is Shipped
-  useMemo(() => {
+  useEffect(() => {
     if (highlightedOrder) {
       if (highlightedOrder.status === 'Shipped') setStatusFilter('Shipped');
+      else if (highlightedOrder.status === 'Pending') setStatusFilter('Pending');
       else setStatusFilter('Paid');
     }
-  }, [highlightedOrder]);
+  }, [highlightedOrder?.id]);
 
   const filtered = orders.filter((o) => o.status === statusFilter);
 
@@ -318,9 +313,9 @@ const OrdersTab = ({ highlightOrderId, onClearHighlight }: { highlightOrderId?: 
         </button>
       </div>
 
-      {/* Status toggle — PAID / SHIPPED only */}
+      {/* Status toggle — PENDING / PAID / SHIPPED */}
       <div className="flex items-center gap-1 border-t border-border pt-2">
-        {(['Paid', 'Shipped'] as const).map((s) => (
+        {(['Pending', 'Paid', 'Shipped'] as const).map((s) => (
           <button
             key={s}
             onClick={() => updateOrderStatus(o.id, s)}
@@ -348,14 +343,20 @@ const OrdersTab = ({ highlightOrderId, onClearHighlight }: { highlightOrderId?: 
           {/* Status filter toggle */}
           <div className="inline-flex border border-border bg-secondary/60 text-[11px]">
             <button
+              onClick={() => setStatusFilter('Pending')}
+              className={`px-3 py-1.5 tracking-[0.15em] transition-colors ${statusFilter === 'Pending' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'}`}
+            >
+              PENDING
+            </button>
+            <button
               onClick={() => setStatusFilter('Paid')}
-              className={`px-4 py-1.5 tracking-[0.15em] transition-colors ${statusFilter === 'Paid' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'}`}
+              className={`px-3 py-1.5 tracking-[0.15em] transition-colors ${statusFilter === 'Paid' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'}`}
             >
               PAID
             </button>
             <button
               onClick={() => setStatusFilter('Shipped')}
-              className={`px-4 py-1.5 tracking-[0.15em] transition-colors ${statusFilter === 'Shipped' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'}`}
+              className={`px-3 py-1.5 tracking-[0.15em] transition-colors ${statusFilter === 'Shipped' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'}`}
             >
               SHIPPED
             </button>
@@ -641,6 +642,26 @@ const BulkUploadView = ({ onBack }: { onBack: () => void }) => {
     setDone(false);
     const updatedRows = [...rows];
 
+    // Pre-compute a stable base count to avoid stale closure race condition
+    const baseCount = useProductStore.getState().products.length;
+
+    // Collect all unique new platforms/genres upfront to batch-update settings once
+    const existingPlatforms = new Set(useProductStore.getState().platforms);
+    const existingGenres = new Set(useProductStore.getState().genres);
+    const newPlatforms = new Set<string>();
+    const newGenres = new Set<string>();
+    updatedRows.forEach((row) => {
+      if (row.platform?.trim() && !existingPlatforms.has(row.platform.trim())) {
+        newPlatforms.add(row.platform.trim());
+      }
+      if (row.genre?.trim() && !existingGenres.has(row.genre.trim())) {
+        newGenres.add(row.genre.trim());
+      }
+    });
+    // Batch-add platforms and genres once (avoids N concurrent DB writes)
+    for (const p of newPlatforms) await addPlatform(p);
+    for (const g of newGenres) await addGenre(g);
+
     const BATCH_SIZE = 10;
     for (let start = 0; start < updatedRows.length; start += BATCH_SIZE) {
       const batch = Array.from(
@@ -652,7 +673,8 @@ const BulkUploadView = ({ onBack }: { onBack: () => void }) => {
         setRows([...updatedRows]);
         try {
           const row = updatedRows[i];
-          const productId = row.id || `OWA-${String(products.length + i + 1).padStart(3, '0')}`;
+          // Use stable baseCount + index to avoid race condition with stale products.length
+          const productId = row.id || `OWA-${String(baseCount + i + 1).padStart(3, '0')}`;
 
           // front + back upload parallel
           const [frontImage, backImage] = await Promise.all([
@@ -678,8 +700,6 @@ const BulkUploadView = ({ onBack }: { onBack: () => void }) => {
             statusTag: 'none',
           };
 
-          if (newProduct.platform && !platforms.includes(newProduct.platform)) addPlatform(newProduct.platform);
-          if (newProduct.genre && !genres.includes(newProduct.genre)) addGenre(newProduct.genre);
           addProduct(newProduct);
           updatedRows[i] = { ...updatedRows[i], frontImage, backImage, status: 'done' };
         } catch (err) {

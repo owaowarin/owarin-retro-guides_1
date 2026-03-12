@@ -30,7 +30,9 @@ const ProductDetail = () => {
 
   useEffect(() => {
     if (!id) return;
-    supabase.from('product_views').insert({ product_id: id });
+    supabase.from('product_views').insert({ product_id: id }).then(({ error }) => {
+      if (error) console.warn('[ProductDetail] product_views insert failed:', error.message);
+    });
   }, [id]);
 
   const isInCart = items.some((i) => i.productId === id);

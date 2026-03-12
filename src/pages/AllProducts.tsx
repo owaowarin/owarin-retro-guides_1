@@ -25,7 +25,7 @@ const AllProducts = () => {
   useEffect(() => {
     const q = searchParams.get('search') ?? '';
     setSearch(q);
-  }, [searchParams.get('search')]);
+  }, [searchParams]);
 
   const products = useProductStore((s) => s.products);
 

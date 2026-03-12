@@ -31,46 +31,53 @@ const Checkout = () => {
     }
     setSubmitting(true);
 
-    const now = new Date();
-    const datePart = now.getFullYear().toString()
-      + String(now.getMonth() + 1).padStart(2, '0')
-      + String(now.getDate()).padStart(2, '0');
-    const { count } = await supabase
-      .from('orders')
-      .select('id', { count: 'exact', head: true })
-      .like('id', `OWA-${datePart}-%`);
-    const seqPart = String((count ?? 0) + 101).padStart(4, '0');
-    const orderId = `OWA-${datePart}-${seqPart}`;
+    try {
+      const now = new Date();
+      const datePart = now.getFullYear().toString()
+        + String(now.getMonth() + 1).padStart(2, '0')
+        + String(now.getDate()).padStart(2, '0');
+      const { count } = await supabase
+        .from('orders')
+        .select('id', { count: 'exact', head: true })
+        .like('id', `OWA-${datePart}-%`);
+      const seqPart = String((count ?? 0) + 101).padStart(4, '0');
+      const orderId = `OWA-${datePart}-${seqPart}`;
 
-    let slipUrl: string | undefined;
-    if (slipFile) {
-      const ext = slipFile.name.split('.').pop();
-      const path = `slips/${orderId}.${ext}`;
-      const { error: uploadError } = await supabase.storage
-        .from('product-images')
-        .upload(path, slipFile, { upsert: true });
-      if (!uploadError) {
-        const { data: urlData } = supabase.storage.from('product-images').getPublicUrl(path);
-        slipUrl = urlData.publicUrl;
+      let slipUrl: string | undefined;
+      if (slipFile) {
+        const ext = slipFile.name.split('.').pop();
+        const path = `slips/${orderId}.${ext}`;
+        const { error: uploadError } = await supabase.storage
+          .from('product-images')
+          .upload(path, slipFile, { upsert: true });
+        if (!uploadError) {
+          const { data: urlData } = supabase.storage.from('product-images').getPublicUrl(path);
+          slipUrl = urlData.publicUrl;
+        }
       }
+
+      items.forEach((item) => {
+        const prod = products.find((p) => p.id === item.productId);
+        if (prod) updateProduct(prod.id, { statusTag: 'soldOut' });
+      });
+
+      await addOrder({
+        id: orderId,
+        items: items.map((i) => ({ productId: i.productId, title: i.title, price: i.price, platform: i.platform })),
+        subtotal, shipping, total,
+        customer: form,
+        status: 'Paid',
+        slipUrl,
+        createdAt: new Date().toISOString(),
+      });
+      clearCart();
+      navigate(`/thank-you?orderId=${orderId}`);
+    } catch (err) {
+      console.error('[Checkout] Submit failed:', err);
+      toast.error('Something went wrong. Please try again.');
+    } finally {
+      setSubmitting(false);
     }
-
-    items.forEach((item) => {
-      const prod = products.find((p) => p.id === item.productId);
-      if (prod) updateProduct(prod.id, { statusTag: 'soldOut' });
-    });
-
-    addOrder({
-      id: orderId,
-      items: items.map((i) => ({ productId: i.productId, title: i.title, price: i.price, platform: i.platform })),
-      subtotal, shipping, total,
-      customer: form,
-      status: 'Paid',
-      slipUrl,
-      createdAt: new Date().toISOString(),
-    });
-    clearCart();
-    navigate(`/thank-you?orderId=${orderId}`);
   };
 
   /* shared label class */

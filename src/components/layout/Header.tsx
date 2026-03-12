@@ -7,7 +7,6 @@ import { useMemo, useRef, useEffect } from 'react';
 
 interface HeaderProps {
   onMenuToggle: () => void;
-  onCartOpen?: () => void;
 }
 
 const CartIcon = () => (
@@ -19,7 +18,7 @@ const CartIcon = () => (
   </svg>
 );
 
-const Header = ({ onMenuToggle, onCartOpen }: HeaderProps) => {
+const Header = ({ onMenuToggle }: HeaderProps) => {
   const itemCount = useCartStore((s) => s.items.length);
   const openCart = useCartStore((s) => s.openCart);
   const storeName = useAppStore((s) => s.headerName);
@@ -31,12 +30,6 @@ const Header = ({ onMenuToggle, onCartOpen }: HeaderProps) => {
   const activePlatform = searchParams.get('platform') || '';
   const platformBarRef = useRef<HTMLDivElement>(null);
 
-  const handleCartClick = () => {
-    if (onCartOpen) onCartOpen();
-    else openCart();
-  };
-
-  /* ── Non-passive wheel → horizontal scroll on desktop ── */
   useEffect(() => {
     const el = platformBarRef.current;
     if (!el) return;
@@ -92,7 +85,7 @@ const Header = ({ onMenuToggle, onCartOpen }: HeaderProps) => {
             <Search size={15} />
           </button>
 
-          <button onClick={handleCartClick}
+          <button onClick={openCart}
             className="flex items-center gap-1.5 px-2.5 py-2 text-white/40 hover:text-white/75 transition-colors">
             <CartIcon />
             {itemCount > 0 && (
