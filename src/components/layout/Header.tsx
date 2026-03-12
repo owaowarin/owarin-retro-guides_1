@@ -30,6 +30,7 @@ const Header = ({ onMenuToggle }: HeaderProps) => {
   const activePlatform = searchParams.get('platform') || '';
   const platformBarRef = useRef<HTMLDivElement>(null);
 
+  /* ── Non-passive wheel → horizontal scroll on desktop ── */
   useEffect(() => {
     const el = platformBarRef.current;
     if (!el) return;

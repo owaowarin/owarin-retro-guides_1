@@ -104,7 +104,8 @@ export const useProductStore = create<ProductStore>((set, get) => ({
     set({ loading: true });
     const { data, error } = await supabase
       .from('products')
-      .select('*')
+      // ✅ Select เฉพาะ columns ที่ใช้ — ลด network payload
+      .select('id,title,price,condition,platform,genre,language,release_date,developer,publisher,synopsis,front_image,back_image,images,status_tag,hidden')
       .order('title');
     if (!error && data) {
       set({ products: data.map(fromRow) });

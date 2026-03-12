@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { Link } from 'react-router-dom';
 import { Plus, Check } from 'lucide-react';
 import type { Product } from '@/stores/useProductStore';
@@ -5,11 +6,14 @@ import { useCartStore } from '@/stores/useCartStore';
 
 interface ProductCardProps {
   product: Product;
-  priority?: boolean; // true = eager load (above-the-fold cards)
+  priority?: boolean;
 }
 
-const ProductCard = ({ product, priority = false }: ProductCardProps) => {
-  const { items, toggleItem } = useCartStore();
+// ✅ React.memo — ป้องกัน re-render เมื่อ parent re-render แต่ product ไม่เปลี่ยน
+const ProductCard = memo(({ product, priority = false }: ProductCardProps) => {
+  // ✅ Subscribe เฉพาะ items — ไม่ re-render เมื่อ cart state อื่นเปลี่ยน
+  const items = useCartStore((s) => s.items);
+  const toggleItem = useCartStore((s) => s.toggleItem);
 
   const isSoldOut = product.statusTag === 'soldOut';
   const isInCart = items.some((i) => i.productId === product.id);
@@ -121,6 +125,10 @@ const ProductCard = ({ product, priority = false }: ProductCardProps) => {
       </div>
     </Link>
   );
-};
+// ✅ custom comparator — re-render เฉพาะเมื่อ product object หรือ priority เปลี่ยนจริงๆ
+}, (prev, next) => prev.product === next.product && prev.priority === next.priority);
+
+// ✅ displayName ช่วย debug ใน React DevTools
+ProductCard.displayName = 'ProductCard';
 
 export default ProductCard;

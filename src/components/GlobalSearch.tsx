@@ -1,4 +1,4 @@
-import { useRef, useState, type KeyboardEvent } from 'react';
+import { useRef, useState, useCallback, type KeyboardEvent } from 'react';
 import { Search, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/lib/supabase';
@@ -19,6 +19,15 @@ interface GlobalSearchProps {
   className?: string;
 }
 
+// ✅ Debounce utility — ป้องกัน save query ทุก keystroke
+function useDebounce<T extends (...args: Parameters<T>) => void>(fn: T, delay: number): T {
+  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  return useCallback((...args: Parameters<T>) => {
+    if (timer.current) clearTimeout(timer.current);
+    timer.current = setTimeout(() => fn(...args), delay);
+  }, [fn, delay]) as T;
+}
+
 export const GlobalSearch = ({
   value,
   onChange,
@@ -37,10 +46,18 @@ export const GlobalSearch = ({
     setActiveIndex(-1);
   };
 
+  // ✅ Debounce บันทึก search query — save เฉพาะเมื่อหยุดพิมพ์ 600ms
+  const saveQueryDebounced = useDebounce((q: string) => {
+    if (q.trim().length >= 2) {
+      supabase.from('search_queries').insert({ query: q.trim() });
+    }
+  }, 600);
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     onChange(e.target.value);
     setOpen(true);
     setActiveIndex(-1);
+    saveQueryDebounced(e.target.value);
   };
 
   const handleClear = () => {
@@ -73,12 +90,8 @@ export const GlobalSearch = ({
     if (e.key === 'Enter') {
       e.preventDefault();
       if (open && activeIndex >= 0 && suggestions[activeIndex]) {
-        const q = suggestions[activeIndex].label;
-        supabase.from('search_queries').insert({ query: q });
         onSelectSuggestion(suggestions[activeIndex]);
       } else {
-        const q = value.trim();
-        if (q) supabase.from('search_queries').insert({ query: q });
         onSearch?.(value);
       }
       closeDropdown();

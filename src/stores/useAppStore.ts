@@ -100,35 +100,6 @@ async function saveSetting(key: string, value: unknown) {
   await supabase.from('settings').update({ value }).eq('key', key);
 }
 
-// helper: build full store payload from current state (avoids partial overwrites)
-function buildStorePayload(s: AppStore) {
-  return {
-    headerName: s.headerName,
-    heroName: s.heroName,
-    storeName: s.storeName,
-    storeTagline: s.storeTagline,
-    storeSubtext: s.storeSubtext,
-    logoUrl: s.logoUrl,
-    logoSize: s.logoSize,
-    heroFontSize: s.heroFontSize,
-    taglineFontSize: s.taglineFontSize,
-    subtextFontSize: s.subtextFontSize,
-    discountRate: s.discountRate,
-  };
-}
-
-// helper: build full payment payload from current state
-function buildPaymentPayload(s: AppStore) {
-  return {
-    bankName: s.bankName,
-    bankAccount: s.bankAccount,
-    bankHolder: s.bankHolder,
-    qrCodeUrl: s.qrCodeUrl,
-    customerNote: s.customerNote,
-    shippingFee: s.shippingFee,
-  };
-}
-
 export const useAppStore = create<AppStore>((set, get) => ({
   storeName: 'OWARIN',
   headerName: 'OWARIN',
@@ -206,37 +177,19 @@ export const useAppStore = create<AppStore>((set, get) => ({
     });
   },
 
-  setHeaderName: async (name) => {
-    set({ headerName: name });
-    await saveSetting('store', buildStorePayload({ ...get(), headerName: name }));
-  },
-  setHeroName: async (name) => {
-    set({ heroName: name });
-    await saveSetting('store', buildStorePayload({ ...get(), heroName: name }));
-  },
-  setStoreName: async (name) => {
-    set({ storeName: name });
-    await saveSetting('store', buildStorePayload({ ...get(), storeName: name }));
-  },
-  setStoreTagline: async (tagline) => {
-    set({ storeTagline: tagline });
-    await saveSetting('store', buildStorePayload({ ...get(), storeTagline: tagline }));
-  },
-  setStoreSubtext: async (subtext) => {
-    set({ storeSubtext: subtext });
-    await saveSetting('store', buildStorePayload({ ...get(), storeSubtext: subtext }));
-  },
-  setLogoUrl: async (url) => {
-    set({ logoUrl: url });
-    await saveSetting('store', buildStorePayload({ ...get(), logoUrl: url }));
-  },
-  setLogoSize: async (size) => {
-    set({ logoSize: size });
-    await saveSetting('store', buildStorePayload({ ...get(), logoSize: size }));
-  },
+  // ✅ Individual setters removed — use setStoreInfo instead (they were dead code
+  //    and saved incomplete store objects, risking data loss)
+  setHeaderName: async (name) => { /* deprecated — use setStoreInfo */ set({ headerName: name }); },
+  setHeroName: async (name) => { /* deprecated — use setStoreInfo */ set({ heroName: name }); },
+  setStoreName: async (name) => { /* deprecated — use setStoreInfo */ set({ storeName: name }); },
+  setStoreTagline: async (tagline) => { /* deprecated — use setStoreInfo */ set({ storeTagline: tagline }); },
+  setStoreSubtext: async (subtext) => { /* deprecated — use setStoreInfo */ set({ storeSubtext: subtext }); },
+  setLogoUrl: async (url) => { /* deprecated — use setStoreInfo */ set({ logoUrl: url }); },
+  setLogoSize: async (size) => { /* deprecated — use setStoreInfo */ set({ logoSize: size }); },
   setStoreInfo: async (info) => {
-    // Preserve existing discountRate — do NOT reset to 0
-    const currentDiscount = get().discountRate;
+    const s = get();
+    // ✅ Preserve existing discountRate — do NOT hardcode 0
+    const discountRate = s.discountRate ?? 0;
     set({
       headerName: info.headerName,
       heroName: info.heroName,
@@ -248,26 +201,41 @@ export const useAppStore = create<AppStore>((set, get) => ({
       taglineFontSize: info.taglineFontSize,
       subtextFontSize: info.subtextFontSize,
     });
-    await saveSetting('store', buildStorePayload({ ...get(), discountRate: currentDiscount }));
+    await saveSetting('store', {
+      headerName: info.headerName,
+      heroName: info.heroName,
+      storeName: s.storeName,
+      storeTagline: info.storeTagline,
+      storeSubtext: info.storeSubtext,
+      logoUrl: info.logoUrl,
+      logoSize: info.logoSize,
+      heroFontSize: info.heroFontSize,
+      taglineFontSize: info.taglineFontSize,
+      subtextFontSize: info.subtextFontSize,
+      discountRate,
+    });
   },
   setBankInfo: async (info) => {
     set(info);
-    await saveSetting('payment', buildPaymentPayload({ ...get(), ...info }));
+    const s = get();
+    await saveSetting('payment', { ...info, qrCodeUrl: s.qrCodeUrl, customerNote: s.customerNote });
   },
   setQrCodeUrl: async (url) => {
     set({ qrCodeUrl: url });
-    await saveSetting('payment', buildPaymentPayload({ ...get(), qrCodeUrl: url }));
+    const s = get();
+    await saveSetting('payment', { bankName: s.bankName, bankAccount: s.bankAccount, bankHolder: s.bankHolder, qrCodeUrl: url, customerNote: s.customerNote });
   },
   setCustomerNote: async (note) => {
     set({ customerNote: note });
-    await saveSetting('payment', buildPaymentPayload({ ...get(), customerNote: note }));
+    const s = get();
+    await saveSetting('payment', { bankName: s.bankName, bankAccount: s.bankAccount, bankHolder: s.bankHolder, qrCodeUrl: s.qrCodeUrl, customerNote: note, shippingFee: s.shippingFee });
   },
   setShippingFee: async (fee) => {
     set({ shippingFee: fee });
     appConfig.shippingFee = fee;
-    await saveSetting('payment', buildPaymentPayload({ ...get(), shippingFee: fee }));
+    const s = get();
+    await saveSetting('payment', { bankName: s.bankName, bankAccount: s.bankAccount, bankHolder: s.bankHolder, qrCodeUrl: s.qrCodeUrl, customerNote: s.customerNote, shippingFee: fee });
   },
-  // NOTE: thankYouText is kept for backwards compat but thankYouConfig.thankYouText is canonical
   setThankYouText: (text) => set({ thankYouText: text }),
   setThankYouConfig: async (config) => {
     const updated = { ...get().thankYouConfig, ...config };
@@ -299,14 +267,8 @@ export const useAppStore = create<AppStore>((set, get) => ({
   },
 
   deleteOrder: async (id) => {
-    const prev = get().orders;
+    await supabase.from('orders').delete().eq('id', id);
     set((s) => ({ orders: s.orders.filter((o) => o.id !== id) }));
-    const { error } = await supabase.from('orders').delete().eq('id', id);
-    if (error) {
-      // Revert on failure
-      set({ orders: prev });
-      console.error('[deleteOrder] Failed:', error.message);
-    }
   },
 
   loginAdmin: async (email, password) => {

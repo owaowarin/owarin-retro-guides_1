@@ -1,20 +1,16 @@
-import { X, Home, ClipboardList, Package, Palette, User, ChevronDown } from 'lucide-react';
-import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { X, ChevronDown } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
 import { useProductStore } from '@/stores/useProductStore';
 import { useMemo, useState } from 'react';
 
 interface MobileSidebarProps {
   isOpen: boolean;
   onClose: () => void;
-  onAdminTab?: (tab: number) => void;
-  activeAdminTab?: number;
 }
 
-const MobileSidebar = ({ isOpen, onClose, onAdminTab, activeAdminTab }: MobileSidebarProps) => {
+const MobileSidebar = ({ isOpen, onClose }: MobileSidebarProps) => {
   const products = useProductStore((s) => s.products);
   const navigate = useNavigate();
-  const location = useLocation();
-  const isAdminPage = location.pathname === '/admin';
 
   const [expanded, setExpanded] = useState<Record<string, boolean>>({
     publisher: false,
@@ -34,62 +30,20 @@ const MobileSidebar = ({ isOpen, onClose, onAdminTab, activeAdminTab }: MobileSi
 
   if (!isOpen) return null;
 
-  const adminMenu = [
-    { label: 'ORDERS', icon: ClipboardList, tab: 0 },
-    { label: 'MY PRODUCTS', icon: Package, tab: 1 },
-    {
-      label: 'APPEARANCE', icon: Palette, tab: 2,
-      sub: ['Store Info', 'Categories', 'Payment Details', 'Order Confirmation', 'Condition Settings'],
-    },
-    { label: 'ACCOUNT', icon: User, tab: 3 },
-  ];
-
   return (
     <>
       <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50" onClick={onClose} />
       <aside className="fixed right-0 top-0 bottom-0 w-72 bg-card border-l border-border z-50 overflow-y-auto flex flex-col" style={{ animation: 'slideInRight 0.2s ease' }}>
-        {/* Header */}
         <div className="flex items-center justify-between p-4 border-b border-border flex-shrink-0">
           <span className="font-mono text-[10px] tracking-[0.35em] uppercase text-primary">
-            {isAdminPage ? 'ADMIN' : 'OWARIN'}
+            OWARIN
           </span>
           <button onClick={onClose} className="p-1 text-muted-foreground hover:text-foreground transition-colors">
             <X size={20} />
           </button>
         </div>
 
-        {isAdminPage ? (
-          /* ── Admin Navigation ── */
-          <nav className="p-4 space-y-1 flex-1">
-            <Link to="/" onClick={onClose}
-              className="flex items-center gap-3 px-3 py-2.5 text-sm tracking-wider text-muted-foreground hover:text-primary hover:bg-secondary transition-colors mb-4">
-              <Home size={16} /> BACK TO STORE
-            </Link>
-            <div className="border-t border-border pt-4 space-y-1">
-              {adminMenu.map(({ label, icon: Icon, tab, sub }) => (
-                <div key={label}>
-                  <button onClick={() => { onAdminTab?.(tab); onClose(); }}
-                    className={`w-full flex items-center gap-3 px-3 py-2.5 text-sm tracking-wider transition-colors ${
-                      activeAdminTab === tab ? 'text-primary bg-secondary' : 'text-secondary-foreground hover:text-primary hover:bg-secondary'
-                    }`}>
-                    <Icon size={16} />{label}
-                  </button>
-                  {sub && (
-                    <div className="ml-8 mt-0.5 space-y-0.5">
-                      {sub.map((s) => (
-                        <button key={s} onClick={() => { onAdminTab?.(tab); onClose(); }}
-                          className="w-full text-left px-3 py-1.5 text-[11px] tracking-[0.1em] text-muted-foreground hover:text-primary transition-colors">
-                          {s}
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
-          </nav>
-        ) : (
-          /* ── Store Navigation ── */
+        {/* ── Store Navigation ── */}
           <nav className="flex-1 flex flex-col">
             {/* Main links */}
             <div className="p-4 space-y-1 border-b border-border">
@@ -149,7 +103,6 @@ const MobileSidebar = ({ isOpen, onClose, onAdminTab, activeAdminTab }: MobileSi
               </div>
             )}
           </nav>
-        )}
       </aside>
       <style>{`
         @keyframes slideInRight {

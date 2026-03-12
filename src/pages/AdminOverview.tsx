@@ -19,34 +19,6 @@ const StatCard = ({ icon: Icon, label, value, sub }: { icon: React.ElementType; 
   </div>
 );
 
-const MiniMap = () => (
-  <div className="relative w-full h-48 bg-secondary/40 border border-border overflow-hidden flex items-center justify-center">
-    {/* World map SVG placeholder with dot markers */}
-    <svg viewBox="0 0 800 400" className="w-full h-full opacity-20 absolute inset-0">
-      <rect width="800" height="400" fill="transparent" />
-      {/* Simplified continent outlines */}
-      <path d="M50,80 Q120,60 180,90 L200,150 Q160,180 100,160 Z" fill="#C6A355" />
-      <path d="M220,70 Q320,50 420,80 L440,200 Q380,230 280,210 Q200,190 210,130 Z" fill="#C6A355" />
-      <path d="M460,60 Q560,40 640,80 L660,180 Q600,210 520,190 Q460,170 450,120 Z" fill="#C6A355" />
-      <path d="M240,220 Q300,210 340,240 L350,310 Q310,330 270,310 Z" fill="#C6A355" />
-      <path d="M560,200 Q620,190 660,220 L670,280 Q630,300 590,280 Z" fill="#C6A355" />
-    </svg>
-    {/* Visitor dot markers */}
-    {[
-      { x: '62%', y: '30%', label: 'Tokyo' },
-      { x: '60%', y: '35%', label: 'Osaka' },
-      { x: '58%', y: '60%', label: 'Bangkok' },
-      { x: '47%', y: '45%', label: 'Seoul' },
-    ].map(({ x, y, label }) => (
-      <div key={label} className="absolute flex flex-col items-center" style={{ left: x, top: y }}>
-        <div className="w-2.5 h-2.5 rounded-full bg-primary shadow-[0_0_8px_#C6A355] animate-pulse" />
-        <span className="text-[9px] text-primary/80 mt-0.5 whitespace-nowrap">{label}</span>
-      </div>
-    ))}
-    <p className="text-[10px] text-muted-foreground tracking-widest z-10">VISITOR MAP</p>
-  </div>
-);
-
 // ─── Main Component ────────────────────────────────────────────────────────
 
 interface AdminOverviewProps {

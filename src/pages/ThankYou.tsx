@@ -1,22 +1,53 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
 import { useAppStore } from '@/stores/useAppStore';
+import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
 
+// ✅ Fetch order directly from Supabase — works on page refresh
+// (orders are NOT pre-loaded in the public app store)
 const ThankYou = () => {
   const [params] = useSearchParams();
   const orderId = params.get('orderId') || '';
-  const orders = useAppStore((s) => s.orders);
-  const fetchOrders = useAppStore((s) => s.fetchOrders);
   const headerName = useAppStore((s) => s.headerName);
   const cfg = useAppStore((s) => s.thankYouConfig);
-  const order = orders.find((o) => o.id === orderId);
 
-  // If orders not loaded (e.g. page refresh), fetch them
+  type OrderItem = { productId: string; title: string; price: number; platform: string };
+  type Customer = { name: string; phone: string; address: string; postalCode: string };
+  type Order = {
+    id: string;
+    items: OrderItem[];
+    subtotal: number;
+    shipping: number;
+    total: number;
+    customer: Customer;
+    status: string;
+  };
+
+  const [order, setOrder] = useState<Order | null>(null);
+  const [loading, setLoading] = useState(!!orderId);
+
   useEffect(() => {
-    if (orderId && orders.length === 0) {
-      fetchOrders();
+    if (!orderId) return;
+
+    // First try the in-memory store (already loaded e.g. from admin session)
+    const storeOrder = useAppStore.getState().orders.find((o) => o.id === orderId);
+    if (storeOrder) {
+      setOrder(storeOrder as Order);
+      setLoading(false);
+      return;
     }
+
+    // Otherwise fetch directly from Supabase
+    supabase
+      .from('orders')
+      .select('id, items, subtotal, shipping, total, customer, status')
+      .eq('id', orderId)
+      .single()
+      .then(({ data, error }) => {
+        if (!error && data) setOrder(data as Order);
+        setLoading(false);
+      });
   }, [orderId]);
 
   const handleCopy = () => {
@@ -81,7 +112,11 @@ const ThankYou = () => {
             <div className="border-t border-dashed border-border" />
 
             {/* Order Details */}
-            {order ? (
+            {loading ? (
+              <div className="flex justify-center py-6">
+                <div className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+              </div>
+            ) : order ? (
               <>
                 <p className="font-mono text-[10px] text-muted-foreground tracking-[0.2em]">[ ORDER DETAILS ]</p>
                 <div className="space-y-4">

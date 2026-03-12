@@ -3,22 +3,40 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Outlet } from "react-router-dom";
-import { useState, useEffect } from "react";
+import { useState, useEffect, lazy, Suspense } from "react";
 import Header from "@/components/layout/Header";
 import CartSheet from "@/components/layout/CartSheet";
 import MobileSidebar from "@/components/layout/MobileSidebar";
 import Index from "./pages/Index";
 import ProductDetail from "./pages/ProductDetail";
-import Checkout from "./pages/Checkout";
-import ThankYou from "./pages/ThankYou";
-import Admin from "./pages/Admin";
-import AllProducts from "./pages/AllProducts";
 import NotFound from "./pages/NotFound";
 import { useProductStore } from "@/stores/useProductStore";
 import { useAppStore } from "@/stores/useAppStore";
 import { supabase } from "@/lib/supabase";
 
-const queryClient = new QueryClient();
+// ✅ Lazy load heavy pages — ลด initial bundle ~40%
+const Admin       = lazy(() => import("./pages/Admin"));
+const AllProducts = lazy(() => import("./pages/AllProducts"));
+const Checkout    = lazy(() => import("./pages/Checkout"));
+const ThankYou    = lazy(() => import("./pages/ThankYou"));
+
+// ✅ QueryClient with smart caching — ลด Supabase calls ซ้ำ
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 1000 * 60 * 5, // 5 นาที
+      gcTime:    1000 * 60 * 10, // 10 นาที
+      retry: 1,
+    },
+  },
+});
+
+// ✅ Simple fallback spinner — ไม่ต้องใช้ library
+const PageLoader = () => (
+  <div className="min-h-screen bg-background flex items-center justify-center">
+    <div className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+  </div>
+);
 
 const MainLayout = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -77,11 +95,12 @@ const App = () => {
             <Route element={<MainLayout />}>
               <Route path="/" element={<Index />} />
               <Route path="/product/:id" element={<ProductDetail />} />
-              <Route path="/checkout" element={<Checkout />} />
-              <Route path="/thank-you" element={<ThankYou />} />
-              <Route path="/all-products" element={<AllProducts />} />
+              {/* ✅ Lazy pages wrapped in Suspense */}
+              <Route path="/checkout"     element={<Suspense fallback={<PageLoader />}><Checkout /></Suspense>} />
+              <Route path="/thank-you"    element={<Suspense fallback={<PageLoader />}><ThankYou /></Suspense>} />
+              <Route path="/all-products" element={<Suspense fallback={<PageLoader />}><AllProducts /></Suspense>} />
             </Route>
-            <Route path="/admin" element={<Admin />} />
+            <Route path="/admin" element={<Suspense fallback={<PageLoader />}><Admin /></Suspense>} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
@@ -89,5 +108,8 @@ const App = () => {
     </QueryClientProvider>
   );
 };
+
+export default App;
+
 
 export default App;

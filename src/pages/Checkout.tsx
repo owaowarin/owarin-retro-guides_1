@@ -56,11 +56,7 @@ const Checkout = () => {
         }
       }
 
-      items.forEach((item) => {
-        const prod = products.find((p) => p.id === item.productId);
-        if (prod) updateProduct(prod.id, { statusTag: 'soldOut' });
-      });
-
+      // ✅ Save order to DB FIRST — if this fails we abort before marking products
       await addOrder({
         id: orderId,
         items: items.map((i) => ({ productId: i.productId, title: i.title, price: i.price, platform: i.platform })),
@@ -70,17 +66,27 @@ const Checkout = () => {
         slipUrl,
         createdAt: new Date().toISOString(),
       });
+
+      // ✅ Only mark sold out AFTER order is confirmed in DB
+      await Promise.all(
+        items.map((item) => {
+          const prod = products.find((p) => p.id === item.productId);
+          if (prod) return updateProduct(prod.id, { statusTag: 'soldOut' });
+          return Promise.resolve();
+        })
+      );
+
       clearCart();
       navigate(`/thank-you?orderId=${orderId}`);
     } catch (err) {
-      console.error('[Checkout] Submit failed:', err);
+      console.error('[Checkout] Error:', err);
       toast.error('Something went wrong. Please try again.');
     } finally {
+      // ✅ Always reset submitting state
       setSubmitting(false);
     }
   };
 
-  /* shared label class */
   const sectionLabel = 'font-mono text-[9px] tracking-[0.28em] uppercase text-[#C4A35B]';
   const inputClass = 'w-full bg-transparent border border-white/8 px-4 py-3 text-sm font-light text-white/70 placeholder:text-white/20 focus:outline-none focus:border-[#C4A35B]/50 transition-colors';
 
