@@ -22,6 +22,9 @@ const NewArrivalsCarousel = ({ products }: { products: CarouselProduct[] }) => {
   /* ── Keyboard navigation ── */
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
+      // ✅ ไม่ดักคีย์บอร์ดเมื่อ focus อยู่ที่ input/select/button อื่น
+      const tag = (e.target as HTMLElement).tagName;
+      if (['INPUT', 'SELECT', 'TEXTAREA', 'BUTTON'].includes(tag)) return;
       if (e.key === 'ArrowLeft') go(idx - 1);
       if (e.key === 'ArrowRight') go(idx + 1);
     };

@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
-import { appConfig } from './appConfig';
+import { appConfig, calcShipping } from './appConfig';
 
 interface CartItem {
   productId: string;
@@ -54,8 +54,8 @@ export const useCartStore = create<CartStore>()(
       getShippingCost: () => {
         const count = get().items.length;
         if (count === 0) return 0;
-        const fee = appConfig.shippingFee ?? 70;
-        return fee;
+        // ✅ Dynamic shipping: 50฿ first item, +10฿ each next, max 100฿
+        return calcShipping(count);
       },
 
       getTotal: () => {

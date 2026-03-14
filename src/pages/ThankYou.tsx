@@ -140,7 +140,7 @@ const ThankYou = () => {
                     <span>{order.subtotal.toLocaleString()} THB</span>
                   </div>
                   <div className="flex justify-between text-xs text-muted-foreground">
-                    <span className="tracking-wider">SHIPPING FEE (ส่งด่วน)</span>
+                    <span className="tracking-wider">SHIPPING FEE</span>
                     <span>{order.shipping.toLocaleString()} THB</span>
                   </div>
                   <div className="flex justify-between items-center pt-2 border-t border-dashed border-border">

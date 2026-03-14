@@ -2,6 +2,7 @@
 import { create } from 'zustand';
 import { supabase } from '@/lib/supabase';
 import { appConfig } from './appConfig';
+import { useProductStore } from './useProductStore';
 
 interface Order {
   id: string;
@@ -218,12 +219,12 @@ export const useAppStore = create<AppStore>((set, get) => ({
   setBankInfo: async (info) => {
     set(info);
     const s = get();
-    await saveSetting('payment', { ...info, qrCodeUrl: s.qrCodeUrl, customerNote: s.customerNote });
+    await saveSetting('payment', { ...info, qrCodeUrl: s.qrCodeUrl, customerNote: s.customerNote, shippingFee: s.shippingFee });
   },
   setQrCodeUrl: async (url) => {
     set({ qrCodeUrl: url });
     const s = get();
-    await saveSetting('payment', { bankName: s.bankName, bankAccount: s.bankAccount, bankHolder: s.bankHolder, qrCodeUrl: url, customerNote: s.customerNote });
+    await saveSetting('payment', { bankName: s.bankName, bankAccount: s.bankAccount, bankHolder: s.bankHolder, qrCodeUrl: url, customerNote: s.customerNote, shippingFee: s.shippingFee });
   },
   setCustomerNote: async (note) => {
     set({ customerNote: note });
@@ -267,6 +268,14 @@ export const useAppStore = create<AppStore>((set, get) => ({
   },
 
   deleteOrder: async (id) => {
+    // ✅ Restore stock — คืนสินค้าทุกชิ้นใน order กลับเป็น available ก่อน delete
+    const order = get().orders.find((o) => o.id === id);
+    if (order) {
+      const { updateProduct } = useProductStore.getState();
+      await Promise.all(
+        order.items.map((item) => updateProduct(item.productId, { statusTag: 'none' }))
+      );
+    }
     await supabase.from('orders').delete().eq('id', id);
     set((s) => ({ orders: s.orders.filter((o) => o.id !== id) }));
   },

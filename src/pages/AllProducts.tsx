@@ -160,10 +160,10 @@ const AllProducts = () => {
       <div className="fixed top-[84px] left-0 right-0 z-40 bg-background/95 backdrop-blur-sm border-b border-border px-4 py-2">
         <GlobalSearch
           value={search}
-          onChange={setSearch}
+          onChange={(q) => { setSearch(q); setFilter('search', q); }}
           suggestions={suggestions}
-          onSelectSuggestion={(s) => setSearch(s.label)}
-          onSearch={(q) => setSearch(q)}
+          onSelectSuggestion={(s) => { setSearch(s.label); setFilter('search', s.label); }}
+          onSearch={(q) => { setSearch(q); setFilter('search', q); }}
           placeholder="Search by title, platform, genre, publisher..."
         />
       </div>
