@@ -9,7 +9,7 @@ import { toast } from 'sonner';
 
 const Checkout = () => {
   const { items, removeItem, clearCart, getShippingCost, getTotal } = useCartStore();
-  const { bankName, bankAccount, bankHolder, qrCodeUrl, customerNote, addOrder } = useAppStore();
+  const { bankName, bankAccount, bankHolder, qrCodeUrl, customerNote, addOrder, discountRate } = useAppStore();
   const updateProduct = useProductStore((s) => s.updateProduct);
   const products = useProductStore((s) => s.products);
   const navigate = useNavigate();
@@ -18,9 +18,9 @@ const Checkout = () => {
   const [slipFile, setSlipFile] = useState<File | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
-  const subtotal = items.reduce((s, i) => s + i.price, 0);
+  const subtotal = items.reduce((s, i) => s + (discountRate > 0 ? Math.round(i.price * (1 - discountRate / 100)) : i.price), 0);
   const shipping = getShippingCost();
-  const total = getTotal();
+  const total = subtotal + shipping;
 
   const handleSubmit = async () => {
     if (!form.name || !form.phone || !form.address || !form.postalCode) {
@@ -129,10 +129,17 @@ const Checkout = () => {
                       </span>
                     </div>
                     <div className="flex items-center justify-between mt-2">
-                      <span className="font-mono text-[12px] font-bold text-[#D4AF37] lining-nums">
-                        {item.price.toLocaleString()}
-                        <span className="text-[9px] font-normal text-white/22 ml-1">THB</span>
-                      </span>
+                      <div className="flex flex-col">
+                        {discountRate > 0 && (
+                          <span className="font-mono text-[9px] text-white/25 line-through lining-nums leading-none">
+                            {item.price.toLocaleString()}
+                          </span>
+                        )}
+                        <span className="font-mono text-[12px] font-bold text-[#D4AF37] lining-nums">
+                          {(discountRate > 0 ? Math.round(item.price * (1 - discountRate / 100)) : item.price).toLocaleString()}
+                          <span className="text-[9px] font-normal text-white/22 ml-1">THB</span>
+                        </span>
+                      </div>
                       <button onClick={() => removeItem(item.productId)} className="text-white/18 hover:text-white/50 transition-colors">
                         <Trash2 size={14} />
                       </button>

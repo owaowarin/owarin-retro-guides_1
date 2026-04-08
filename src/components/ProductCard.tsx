@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { Plus, Check } from 'lucide-react';
 import type { Product } from '@/stores/useProductStore';
 import { useCartStore } from '@/stores/useCartStore';
+import { useAppStore } from '@/stores/useAppStore';
 
 interface ProductCardProps {
   product: Product;
@@ -14,10 +15,16 @@ const ProductCard = memo(({ product, priority = false }: ProductCardProps) => {
   // ✅ Subscribe เฉพาะ items — ไม่ re-render เมื่อ cart state อื่นเปลี่ยน
   const items = useCartStore((s) => s.items);
   const toggleItem = useCartStore((s) => s.toggleItem);
+  const discountRate = useAppStore((s) => s.discountRate);
 
   const isSoldOut = product.statusTag === 'soldOut';
   const isInCart = items.some((i) => i.productId === product.id);
-  const price = product.price;
+
+  // ✅ Apply discountRate (0 = no discount, e.g. 20 = 20% off)
+  const discountedPrice = discountRate > 0
+    ? Math.round(product.price * (1 - discountRate / 100))
+    : product.price;
+  const price = discountedPrice;
 
   const releaseYear = product.releaseDate
     ? new Date(product.releaseDate).getFullYear()
@@ -103,10 +110,17 @@ const ProductCard = memo(({ product, priority = false }: ProductCardProps) => {
 
         {/* Zone 4: Price + Cart — always at bottom */}
         <div className="flex items-center justify-between mt-auto">
-          <span className="font-mono text-[12px] sm:text-[13px] font-bold text-[#D4AF37] lining-nums">
-            {price.toLocaleString()}
-            <span className="text-[9px] font-normal text-white/20 tracking-[0.1em] ml-1">THB</span>
-          </span>
+          <div className="flex flex-col">
+            {discountRate > 0 && (
+              <span className="font-mono text-[9px] text-white/25 line-through lining-nums leading-none mb-0.5">
+                {product.price.toLocaleString()}
+              </span>
+            )}
+            <span className="font-mono text-[12px] sm:text-[13px] font-bold text-[#D4AF37] lining-nums">
+              {price.toLocaleString()}
+              <span className="text-[9px] font-normal text-white/20 tracking-[0.1em] ml-1">THB</span>
+            </span>
+          </div>
           <button
             type="button"
             onClick={handleAddToCart}
@@ -125,8 +139,15 @@ const ProductCard = memo(({ product, priority = false }: ProductCardProps) => {
       </div>
     </Link>
   );
-// ✅ custom comparator — re-render เฉพาะเมื่อ product object หรือ priority เปลี่ยนจริงๆ
-}, (prev, next) => prev.product === next.product && prev.priority === next.priority);
+// ✅ custom comparator — เปรียบเทียบค่าสำคัญแทน reference เพื่อให้ memo ทำงานได้จริง
+// (fetchProducts สร้าง object ใหม่ทุกครั้ง → reference เปลี่ยนเสมอ → เปรียบเทียบด้วย === ไม่ช่วย)
+}, (prev, next) =>
+  prev.product.id === next.product.id &&
+  prev.product.price === next.product.price &&
+  prev.product.statusTag === next.product.statusTag &&
+  prev.product.frontImage === next.product.frontImage &&
+  prev.priority === next.priority
+);
 
 // ✅ displayName ช่วย debug ใน React DevTools
 ProductCard.displayName = 'ProductCard';

@@ -63,6 +63,7 @@ const NewArrivalsCarousel = ({ products }: { products: CarouselProduct[] }) => {
             ['--card-w' as string]: 'min(75vw, 280px)',
             ['--card-gap' as string]: '16px',
             gap: 'var(--card-gap)',
+            touchAction: 'pan-y',   // ✅ ให้ browser scroll แนวตั้งได้ แต่ horizontal pointer event ไม่ถูก intercept
           }}
           onPointerDown={onPointerDown}
           onPointerUp={onPointerUp}
@@ -165,9 +166,9 @@ const Index = () => {
   const [sort, setSort] = useState<'none' | 'priceAsc' | 'priceDesc' | 'yearAsc' | 'yearDesc'>('none');
   const products = useProductStore((s) => s.products);
 
-  /* Last 10 non-hidden, most recent first */
+  /* Last 10 non-hidden, most recent first (products already ordered by created_at DESC from store) */
   const newArrivals = useMemo(
-    () => products.filter((p) => !p.hidden).slice(-10).reverse(),
+    () => products.filter((p) => !p.hidden).slice(0, 10),
     [products]
   );
 

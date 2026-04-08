@@ -30,7 +30,10 @@ const ProductDetail = () => {
 
   useEffect(() => {
     if (!id) return;
-    supabase.from('product_views').insert({ product_id: id });
+    // ✅ Silent fail — ไม่ให้ error ล้น console ถ้า table ยังไม่ได้สร้างหรือ RLS block
+    supabase.from('product_views').insert({ product_id: id }).then(({ error }) => {
+      if (error) console.warn('[product_views]', error.message);
+    }).catch(() => {});
   }, [id]);
 
   const isInCart = items.some((i) => i.productId === id);
@@ -226,7 +229,7 @@ const ProductDetail = () => {
                 {product.developer && (
                   <MetaRow label="Developer">
                     <div className="flex flex-wrap gap-1.5">
-                      {product.developer.split(',').map((d) => d.trim()).filter(Boolean).map((d) => (
+                      {product.developer.split(/[,/]\s*/).map((d) => d.trim()).filter(Boolean).map((d) => (
                         <Link key={d} to={`/all-products?search=${encodeURIComponent(d)}`} className={tagDefault}>{d}</Link>
                       ))}
                     </div>
@@ -236,7 +239,7 @@ const ProductDetail = () => {
                 {product.publisher && (
                   <MetaRow label="Publisher">
                     <div className="flex flex-wrap gap-1.5">
-                      {product.publisher.split(',').map((p) => p.trim()).filter(Boolean).map((p) => (
+                      {product.publisher.split(/[,/]\s*/).map((p) => p.trim()).filter(Boolean).map((p) => (
                         <Link key={p} to={`/all-products?publisher=${encodeURIComponent(p)}`} className={tagDefault}>{p}</Link>
                       ))}
                     </div>
@@ -246,7 +249,7 @@ const ProductDetail = () => {
                 {product.genre && (
                   <MetaRow label="Genre">
                     <div className="flex flex-wrap gap-1.5">
-                      {product.genre.split(',').map((g) => g.trim()).filter(Boolean).map((g) => (
+                      {product.genre.split(/[,/]\s*/).map((g) => g.trim()).filter(Boolean).map((g) => (
                         <Link key={g} to={`/all-products?genre=${encodeURIComponent(g)}`} className={tagGold}>{g}</Link>
                       ))}
                     </div>

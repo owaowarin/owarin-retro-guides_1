@@ -91,7 +91,7 @@ const ThankYou = () => {
         <p className="text-center font-display tracking-[0.4em] text-primary text-sm mb-8">{headerName}</p>
 
         {/* Receipt card */}
-        <div className="border border-border bg-card rounded-sm overflow-hidden">
+        <div className="border border-border bg-card rounded-none overflow-hidden">
           <div className="px-6 py-6 space-y-5">
 
             {/* Thank you */}
@@ -180,13 +180,13 @@ const ThankYou = () => {
             <div className="space-y-2 pt-1">
               <button
                 onClick={handleCopy}
-                className="w-full border border-border text-muted-foreground hover:border-primary hover:text-primary transition-colors py-2.5 text-[11px] tracking-[0.2em] rounded-sm"
+                className="w-full border border-border text-muted-foreground hover:border-primary hover:text-primary transition-colors py-2.5 text-[11px] tracking-[0.2em] rounded-none"
               >
                 {cfg.copyButtonText}
               </button>
               <button
                 onClick={handleMessenger}
-                className="w-full border border-border text-muted-foreground hover:border-primary hover:text-primary transition-colors py-2.5 text-[11px] tracking-[0.2em] rounded-sm"
+                className="w-full border border-border text-muted-foreground hover:border-primary hover:text-primary transition-colors py-2.5 text-[11px] tracking-[0.2em] rounded-none"
               >
                 {cfg.messengerButtonText}
               </button>

@@ -21,6 +21,7 @@ export interface Product {
   images?: string[];
   statusTag?: ProductStatusTag;
   hidden?: boolean;
+  createdAt?: string;
 }
 
 // map camelCase ↔ snake_case
@@ -70,6 +71,7 @@ function fromRow(r: any): Product {
     images: r.images ?? [],
     statusTag: r.status_tag,
     hidden: r.hidden,
+    createdAt: r.created_at,
   };
 }
 
@@ -105,8 +107,8 @@ export const useProductStore = create<ProductStore>((set, get) => ({
     const { data, error } = await supabase
       .from('products')
       // ✅ Select เฉพาะ columns ที่ใช้ — ลด network payload
-      .select('id,title,price,condition,platform,genre,language,release_date,developer,publisher,synopsis,front_image,back_image,images,status_tag,hidden')
-      .order('title');
+      .select('id,title,price,condition,platform,genre,language,release_date,developer,publisher,synopsis,front_image,back_image,images,status_tag,hidden,created_at')
+      .order('created_at', { ascending: false });
     if (!error && data) {
       set({ products: data.map(fromRow) });
     }

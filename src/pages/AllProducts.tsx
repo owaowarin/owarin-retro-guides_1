@@ -17,7 +17,7 @@ const AllProducts = () => {
   const [page, setPage] = useState(1);
   const drawerRef = useRef<HTMLDivElement>(null);
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
-    sort: true, publisher: false, genre: false,
+    sort: true, platform: false, publisher: false, genre: false,
   });
   const toggleSection = (key: string) =>
     setExpandedSections((prev) => ({ ...prev, [key]: !prev[key] }));
@@ -32,6 +32,15 @@ const AllProducts = () => {
   const selectedPlatform = searchParams.get('platform') || '';
   const selectedGenre = searchParams.get('genre') || '';
   const selectedPublisher = searchParams.get('publisher') || '';
+
+  const livePlatforms = useMemo(() => {
+    const set = new Set(
+      products
+        .filter((p) => !p.hidden)
+        .flatMap((p) => p.platform.split(/[,/]\s*/).map((s) => s.trim()))
+    );
+    return Array.from(set).filter(Boolean).sort();
+  }, [products]);
 
   const livePublishers = useMemo(() => {
     const set = new Set(
@@ -75,6 +84,7 @@ const AllProducts = () => {
             p.publisher.toLowerCase().includes(q) ||
             p.platform.toLowerCase().includes(q) ||
             p.genre.toLowerCase().includes(q) ||
+            p.developer.toLowerCase().includes(q) ||
             year === q
           );
         })
@@ -181,16 +191,16 @@ const AllProducts = () => {
             <button
               onClick={() => setDrawerOpen(true)}
               className={`flex items-center gap-1.5 px-3 py-1.5 border font-mono text-[10px] tracking-[0.2em] uppercase transition-colors ${
-                selectedGenre || selectedPublisher
+                selectedGenre || selectedPublisher || selectedPlatform
                   ? 'border-[#C4A35B]/60 text-[#C4A35B]'
                   : 'border-white/10 text-white/38 hover:text-white/65 hover:border-white/22'
               }`}
             >
               <SlidersHorizontal size={11} />
               <span>FILTER</span>
-              {(selectedGenre || selectedPublisher) && (
+              {(selectedGenre || selectedPublisher || selectedPlatform) && (
                 <span className="w-3.5 h-3.5 bg-[#C4A35B] text-[#0c0c0e] text-[8px] flex items-center justify-center font-bold">
-                  {[selectedGenre, selectedPublisher].filter(Boolean).length}
+                  {[selectedGenre, selectedPublisher, selectedPlatform].filter(Boolean).length}
                 </span>
               )}
             </button>
@@ -335,6 +345,34 @@ const AllProducts = () => {
                   </div>
                 )}
               </div>
+
+              {/* PLATFORM */}
+              {livePlatforms.length > 0 && (
+                <div className="border-b border-border">
+                  <button onClick={() => toggleSection('platform')}
+                    className="w-full flex items-center justify-between px-5 py-4 font-mono text-[10px] tracking-[0.28em] text-[#D4AF37] uppercase hover:text-primary transition-colors">
+                    <span className="flex items-center gap-2">
+                      PLATFORM
+                      {selectedPlatform && <span className="w-1.5 h-1.5 bg-[#C4A35B] inline-block" />}
+                    </span>
+                    <ChevronDown size={14} className={`transition-transform duration-200 ${expandedSections.platform ? 'rotate-180' : ''}`} />
+                  </button>
+                  {expandedSections.platform && (
+                    <div className="px-5 pb-4 space-y-0.5">
+                      {livePlatforms.map((plat) => (
+                        <button key={plat}
+                          onClick={() => setFilter('platform', selectedPlatform === plat ? '' : plat)}
+                          className={`w-full text-left px-2 py-2 font-mono text-[10px] tracking-[0.15em] transition-colors ${
+                            selectedPlatform === plat ? 'text-primary' : 'text-white/35 hover:text-white/70'
+                          }`}>
+                          {selectedPlatform === plat && <span className="mr-2 text-primary">·</span>}
+                          {plat}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
 
               {/* GENRE */}
               {liveGenres.length > 0 && (
